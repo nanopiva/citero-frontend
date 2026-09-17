@@ -764,10 +764,12 @@ export default function AgendaPage() {
                     Turnos programados
                   </h1>
                 </div>
-                <Button onClick={() => setIsManualModalOpen(true)}>
-                  <Plus className="h-4 w-4" weight="bold" />
-                  Nuevo turno
-                </Button>
+                {canManage && (
+                  <Button onClick={() => setIsManualModalOpen(true)}>
+                    <Plus className="h-4 w-4" weight="bold" />
+                    Nuevo turno
+                  </Button>
+                )}
               </header>
 
               {error && <Alert variant="error">{error}</Alert>}
