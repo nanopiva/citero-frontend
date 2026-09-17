@@ -41,7 +41,6 @@ export interface RegisterRequestDto {
   email: string;
   password: string;
   phone?: string;
-  invitationToken?: string;
 }
 
 export interface UserResponseDto {

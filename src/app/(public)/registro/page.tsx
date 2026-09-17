@@ -26,7 +26,6 @@ function RegisterContent() {
 
   const isBusinessIntent = searchParams.get("intent") === "business";
   const emailParam = searchParams.get("email") || "";
-  const invitationToken = searchParams.get("invitacion") || "";
 
   const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
@@ -53,12 +52,7 @@ function RegisterContent() {
 
     setIsLoading(true);
     try {
-      await register(
-        email.trim(),
-        password,
-        phone.trim() || undefined,
-        invitationToken || undefined,
-      );
+      await register(email.trim(), password, phone.trim() || undefined);
       router.replace(
         isBusinessIntent ? ROUTES.auth.onboarding : getDashboardRoute(),
       );
@@ -98,7 +92,7 @@ function RegisterContent() {
           </>
         }
       >
-        {invitationToken && (
+        {emailParam && (
           <div className="mb-5">
             <Alert variant="info">
               Te invitaron a unirte a un equipo. Creá tu cuenta con este correo

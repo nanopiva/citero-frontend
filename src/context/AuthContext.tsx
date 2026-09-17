@@ -26,7 +26,6 @@ interface AuthContextType {
     email: string,
     password: string,
     phone?: string,
-    invitationToken?: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -76,17 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (
-      email: string,
-      password: string,
-      phone?: string,
-      invitationToken?: string,
-    ) => {
+    async (email: string, password: string, phone?: string) => {
       const response = await api.post("/auth/register", {
         email,
         password,
         phone,
-        invitationToken,
       });
       const { token, user: userData } = response.data;
 
