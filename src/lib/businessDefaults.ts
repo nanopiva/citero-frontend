@@ -16,8 +16,7 @@ const WEEK_DAYS: DayOfWeek[] = [
 export const DEFAULT_SCHEDULES: BusinessScheduleRequestDto[] = WEEK_DAYS.map(
   (dayOfWeek) => ({
     dayOfWeek,
-    openTime: DEFAULT_OPEN_TIME,
-    closeTime: DEFAULT_CLOSE_TIME,
     isClosed: false,
+    periods: [{ openTime: DEFAULT_OPEN_TIME, closeTime: DEFAULT_CLOSE_TIME }],
   }),
 );

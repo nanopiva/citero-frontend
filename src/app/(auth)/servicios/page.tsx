@@ -20,6 +20,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { TextField } from "@/components/ui/TextField";
 import { ServiceResponseDto, WorkspaceRole } from "@/types";
 
@@ -212,9 +213,7 @@ export default function ServicesPage() {
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:ml-64 lg:px-10 lg:py-8">
           <RoleGuard allowedRoles={[WorkspaceRole.OWNER]}>
             {loading ? (
-              <div className="mx-auto flex min-h-[480px] max-w-page items-center justify-center">
-                <span className="h-8 w-8 animate-pulse rounded-full bg-pebble" />
-              </div>
+              <PageSkeleton rows={4} />
             ) : (
               <div className="mx-auto max-w-page space-y-6">
                 {error && <Alert variant="error">{error}</Alert>}

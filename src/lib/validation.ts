@@ -1,5 +1,6 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const MIN_PASSWORD_LENGTH = 6;
+export const MIN_PASSWORD_LENGTH = 8;
+export const MAX_PASSWORD_LENGTH = 72;
 export const OTP_LENGTH = 6;
 
 export function validateEmail(value: string): string | undefined {
@@ -12,7 +13,10 @@ export function validateEmail(value: string): string | undefined {
 export function validatePassword(value: string): string | undefined {
   if (!value) return "Ingresá una contraseña.";
   if (value.length < MIN_PASSWORD_LENGTH) {
-    return `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+    return `Usá al menos ${MIN_PASSWORD_LENGTH} caracteres. Una frase larga es más segura y fácil de recordar.`;
+  }
+  if (value.length > MAX_PASSWORD_LENGTH) {
+    return `Usá como máximo ${MAX_PASSWORD_LENGTH} caracteres.`;
   }
   return undefined;
 }

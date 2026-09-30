@@ -26,6 +26,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Modal } from "@/components/ui/Modal";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { TextField } from "@/components/ui/TextField";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -153,7 +154,7 @@ export default function StaffPage() {
   const ownerIsStaff = useMemo(
     () =>
       !!ownerEmail &&
-      staffList.some((s) => s.userEmail.toLowerCase() === ownerEmail),
+      staffList.some((s) => s.userEmail?.toLowerCase() === ownerEmail),
     [staffList, ownerEmail],
   );
 
@@ -172,7 +173,7 @@ export default function StaffPage() {
     setFormError(null);
     setFieldErrors({});
     setFormData({
-      email: staff.userEmail,
+      email: staff.userEmail ?? "",
       customName: staff.customName,
       serviceIds: staff.services?.map((s) => s.id) || [],
     });
@@ -350,7 +351,7 @@ export default function StaffPage() {
       );
       toast.success(
         "Invitación reenviada",
-        `Le enviamos un nuevo correo a ${staff.userEmail}.`,
+        `Le enviamos un nuevo correo a ${staff.userEmail ?? ""}.`,
       );
     } catch (err) {
       toast.error(
@@ -372,9 +373,7 @@ export default function StaffPage() {
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:ml-64 lg:px-10 lg:py-8">
           <RoleGuard allowedRoles={[WorkspaceRole.OWNER]}>
             {loading ? (
-              <div className="mx-auto flex min-h-[480px] max-w-page items-center justify-center">
-                <span className="h-8 w-8 animate-pulse rounded-full bg-pebble" />
-              </div>
+              <PageSkeleton rows={4} />
             ) : (
               <div className="mx-auto max-w-page space-y-6">
                 {pageError && <Alert variant="error">{pageError}</Alert>}
@@ -482,7 +481,7 @@ export default function StaffPage() {
                       {staffList.map((staff) => {
                         const isOwnerRow =
                           !!ownerEmail &&
-                          staff.userEmail.toLowerCase() === ownerEmail;
+                          staff.userEmail?.toLowerCase() === ownerEmail;
                         return (
                           <li
                             key={staff.id}

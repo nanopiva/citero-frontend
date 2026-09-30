@@ -13,7 +13,8 @@ import type {
   BusinessScheduleResponseDto,
 } from "@/types";
 import { Panel } from "./Panel";
-import { formatHours, todayDayOfWeek } from "./dashboardUtils";
+import { formatPeriodsLabel } from "@/lib/schedule";
+import { todayDayOfWeek } from "./dashboardUtils";
 
 function ConfigRow({
   icon,
@@ -58,9 +59,7 @@ export function ConfigPanel({
     ? "Sin horario"
     : todaySchedule.isClosed
       ? "Cerrado hoy"
-      : `${formatHours(todaySchedule.openTime)} - ${formatHours(
-          todaySchedule.closeTime,
-        )}`;
+      : formatPeriodsLabel(todaySchedule.periods) || "Sin horario";
 
   const remindersLabel = !config
     ? "Sin datos"

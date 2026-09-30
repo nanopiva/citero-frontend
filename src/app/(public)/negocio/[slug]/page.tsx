@@ -10,10 +10,11 @@ import { ButtonLink } from "@/components/ui/Button";
 import { BusinessHeader } from "@/components/booking/BusinessHeader";
 import { BusinessInfo } from "@/components/booking/BusinessInfo";
 import { BookingWizard } from "@/components/booking/BookingWizard";
-import type {
-  BusinessResponseDto,
-  ServiceResponseDto,
-  StaffResponseDto,
+import {
+  ReservationMode,
+  type BusinessResponseDto,
+  type ServiceResponseDto,
+  type StaffResponseDto,
 } from "@/types";
 
 export default function BusinessPage() {
@@ -23,6 +24,9 @@ export default function BusinessPage() {
   const [business, setBusiness] = useState<BusinessResponseDto | null>(null);
   const [services, setServices] = useState<ServiceResponseDto[]>([]);
   const [staffList, setStaffList] = useState<StaffResponseDto[]>([]);
+  const [reservationMode, setReservationMode] = useState<ReservationMode>(
+    ReservationMode.PUBLIC,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -38,15 +42,23 @@ export default function BusinessPage() {
         if (!active) return;
         setBusiness(bizRes.data);
 
-        const [servicesRes, staffRes] = await Promise.all([
+        const [servicesRes, staffRes, configRes] = await Promise.all([
           api.get<ServiceResponseDto[]>(
             `/businesses/${bizRes.data.id}/services`,
           ),
           api.get<StaffResponseDto[]>(`/businesses/${bizRes.data.id}/staff`),
+          api
+            .get<{ reservationMode: ReservationMode }>(
+              `/businesses/${bizRes.data.id}/config`,
+            )
+            .catch(() => ({
+              data: { reservationMode: ReservationMode.PUBLIC },
+            })),
         ]);
         if (!active) return;
         setServices(servicesRes.data);
         setStaffList(staffRes.data);
+        setReservationMode(configRes.data.reservationMode);
       } catch {
         if (active) setError(true);
       } finally {
@@ -128,6 +140,7 @@ export default function BusinessPage() {
                 business={business}
                 services={services}
                 staffList={staffList}
+                reservationMode={reservationMode}
                 slug={slug}
               />
             </section>

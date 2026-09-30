@@ -1,14 +1,22 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence } from "motion/react";
 import { CheckCircle } from "@phosphor-icons/react";
 import api from "@/lib/api";
 import { parseApiError } from "@/lib/apiError";
+import { clearResetEmail, getResetEmail } from "@/lib/resetEmail";
 import { clearFieldError, focusFirstError, type FieldErrors } from "@/lib/form";
 import {
+  MAX_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH,
   OTP_LENGTH,
   validateOtp,
@@ -25,10 +33,17 @@ import { PasswordField } from "@/components/ui/PasswordField";
 const RESEND_COOLDOWN_SECONDS = 30;
 const FIELD_ORDER = ["otpCode", "newPassword", "confirmPassword"];
 
+// El email se lee de sessionStorage (no de la URL) como store externo.
+const subscribeToResetEmail = () => () => {};
+const getServerResetEmail = () => "";
+
 function ResetContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const emailParam = searchParams.get("email") || "";
+  const email = useSyncExternalStore(
+    subscribeToResetEmail,
+    getResetEmail,
+    getServerResetEmail,
+  );
 
   const [otpCode, setOtpCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -42,10 +57,10 @@ function ResetContent() {
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    if (!emailParam) {
+    if (!email) {
       router.replace("/recuperar-contrasena");
     }
-  }, [emailParam, router]);
+  }, [email, router]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -55,6 +70,7 @@ function ResetContent() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!email) return;
     setFormError(null);
     setResendMessage(null);
 
@@ -78,10 +94,11 @@ function ResetContent() {
     setIsSubmitting(true);
     try {
       await api.post("/auth/reset-password", {
-        email: emailParam,
+        email,
         otpCode,
         newPassword,
       });
+      clearResetEmail();
       setStep("success");
     } catch (err) {
       const parsed = parseApiError(
@@ -106,11 +123,12 @@ function ResetContent() {
   };
 
   const handleResendCode = async () => {
+    if (!email) return;
     setFormError(null);
     setResendMessage(null);
     setIsResending(true);
     try {
-      await api.post("/auth/forgot-password", { email: emailParam });
+      await api.post("/auth/forgot-password", { email });
       setResendMessage("Te enviamos un código nuevo. Revisá tu email.");
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
@@ -124,7 +142,7 @@ function ResetContent() {
     }
   };
 
-  if (!emailParam) {
+  if (!email) {
     return (
       <AuthShell>
         <div className="flex justify-center py-20">
@@ -152,7 +170,7 @@ function ResetContent() {
           <AuthCard
             key="form"
             title="Creá una nueva contraseña"
-            subtitle={`Ingresá el código de ${OTP_LENGTH} dígitos que enviamos a ${emailParam} y elegí tu nueva contraseña.`}
+            subtitle={`Ingresá el código de ${OTP_LENGTH} dígitos que enviamos a ${email} y elegí tu nueva contraseña.`}
             footer={
               <Link
                 href="/recuperar-contrasena"
@@ -206,6 +224,7 @@ function ResetContent() {
                 label="Nueva contraseña"
                 hint={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
                 autoComplete="new-password"
+                maxLength={MAX_PASSWORD_LENGTH}
                 placeholder="••••••••"
                 value={newPassword}
                 onChange={(e) => {
@@ -222,6 +241,7 @@ function ResetContent() {
                 name="confirmPassword"
                 label="Confirmar nueva contraseña"
                 autoComplete="new-password"
+                maxLength={MAX_PASSWORD_LENGTH}
                 placeholder="Repetí tu contraseña"
                 value={confirmPassword}
                 onChange={(e) => {

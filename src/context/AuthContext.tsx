@@ -22,10 +22,12 @@ interface AuthContextType {
   /** true cuando ya se intentó restaurar la sesión (éxito o no). */
   initialized: boolean;
   login: (email: string, password: string) => Promise<UserResponseDto>;
+  requestRegisterOtp: (email: string) => Promise<void>;
   register: (
     email: string,
     password: string,
-    phone?: string,
+    phone: string | undefined,
+    otpCode: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -74,12 +76,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const requestRegisterOtp = useCallback(async (email: string) => {
+    await api.post("/auth/register/request-otp", { email });
+  }, []);
+
   const register = useCallback(
-    async (email: string, password: string, phone?: string) => {
+    async (
+      email: string,
+      password: string,
+      phone: string | undefined,
+      otpCode: string,
+    ) => {
       const response = await api.post("/auth/register", {
         email,
         password,
         phone,
+        otpCode,
       });
       const { token, user: userData } = response.data;
 
@@ -114,7 +126,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, initialized, login, register, logout, deleteAccount }}
+      value={{
+        user,
+        initialized,
+        login,
+        requestRegisterOtp,
+        register,
+        logout,
+        deleteAccount,
+      }}
     >
       {children}
     </AuthContext.Provider>

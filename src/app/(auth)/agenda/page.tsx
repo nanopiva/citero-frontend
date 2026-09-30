@@ -31,21 +31,14 @@ import {
   type AppointmentResponseDto,
   type BusinessConfigResponseDto,
   type BusinessScheduleResponseDto,
+  type ScheduleExceptionResponseDto,
   type PageResponse,
 } from "@/types";
+import { periodsBounds, resolveDaySchedule } from "@/lib/schedule";
 
 const AGENDA_PAGE_SIZE = 50;
 const HOUR_HEIGHT = 72;
 const PIXELS_PER_MINUTE = HOUR_HEIGHT / 60;
-const DAY_KEYS = [
-  "SUNDAY",
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-];
 
 const DEFAULT_OPEN = 9 * 60;
 const DEFAULT_CLOSE = 18 * 60;
@@ -106,11 +99,6 @@ const getWeekDays = (dateStr: string) => {
     days.push(nextDateStr);
   }
   return days;
-};
-
-const getWeekdayKey = (dateStr: string) => {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return DAY_KEYS[new Date(y, m - 1, d).getDay()];
 };
 
 const formatDayHeader = (dateStr: string) => {
@@ -228,6 +216,8 @@ function AppointmentBlock({
   left,
   width,
   showStaff,
+  onHover,
+  onLeave,
 }: {
   apt: AppointmentResponseDto;
   top: number;
@@ -235,15 +225,15 @@ function AppointmentBlock({
   left: string;
   width: string;
   showStaff: boolean;
+  onHover?: (apt: AppointmentResponseDto, rect: DOMRect) => void;
+  onLeave?: () => void;
 }) {
   const styles = STATUS_STYLES[apt.status] ?? STATUS_STYLES.CONFIRMED;
 
   return (
     <div
-      title={`${apt.service.name} · ${apt.client.email} · ${formatTimeRange(
-        apt.startTime,
-        apt.endTime,
-      )}`}
+      onMouseEnter={(e) => onHover?.(apt, e.currentTarget.getBoundingClientRect())}
+      onMouseLeave={onLeave}
       className={`absolute z-10 cursor-pointer overflow-hidden rounded-lg border p-2 pl-3 shadow-sm transition-shadow hover:shadow-sm-2 ${styles.container}`}
       style={{ top, height, left, width }}
     >
@@ -254,7 +244,7 @@ function AppointmentBlock({
       <div className="flex h-full flex-col gap-0.5">
         <div className="flex items-start justify-between gap-1">
           <p className="truncate text-caption font-semibold">
-            {apt.client.email}
+            {apt.service.name}
           </p>
           {height >= 56 && (
             <span
@@ -266,13 +256,74 @@ function AppointmentBlock({
         </div>
         {height >= 40 && (
           <p className="truncate text-caption opacity-80">
-            {apt.service.name}
+            {formatTimeRange(apt.startTime, apt.endTime)}
             {showStaff ? ` · ${apt.staff.customName}` : ""}
           </p>
         )}
-        {height >= 64 && (
-          <p className="mt-auto text-[10px] opacity-70">
-            {formatTimeRange(apt.startTime, apt.endTime)}
+      </div>
+    </div>
+  );
+}
+
+function AppointmentTooltip({
+  apt,
+  left,
+  top,
+  below,
+}: {
+  apt: AppointmentResponseDto;
+  left: number;
+  top: number;
+  below: boolean;
+}) {
+  const styles = STATUS_STYLES[apt.status] ?? STATUS_STYLES.CONFIRMED;
+
+  return (
+    <div
+      className="pointer-events-none fixed z-[70] w-64 rounded-xl border border-hairline bg-paper p-3 shadow-lg"
+      style={{
+        left,
+        top,
+        transform: `translate(-50%, ${below ? 0 : "-100%"})`,
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-body-sm font-semibold text-ink-navy">
+          {apt.service.name}
+        </p>
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-badges px-2 py-0.5 text-[10px] font-semibold ${styles.badge}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} />
+          {styles.label}
+        </span>
+      </div>
+
+      <div className="mt-2 space-y-1 text-caption text-slate-gray">
+        <p className="flex justify-between gap-3">
+          <span className="shrink-0">Horario</span>
+          <span className="truncate text-right font-medium text-ink-navy">
+            {formatTimeRange(apt.startTime, apt.endTime)} hs
+          </span>
+        </p>
+        <p className="flex justify-between gap-3">
+          <span className="shrink-0">Profesional</span>
+          <span className="truncate text-right font-medium text-ink-navy">
+            {apt.staff.customName}
+          </span>
+        </p>
+        <p className="flex justify-between gap-3">
+          <span className="shrink-0">Cliente</span>
+          <span className="truncate text-right font-medium text-ink-navy">
+            {apt.client.email}
+          </span>
+        </p>
+        {apt.client.phone && (
+          <p className="flex justify-between gap-3">
+            <span className="shrink-0">Teléfono</span>
+            <span className="truncate text-right font-medium text-ink-navy">
+              {apt.client.phone}
+            </span>
           </p>
         )}
       </div>
@@ -297,6 +348,8 @@ function AgendaGrid({
   hours,
   gridHeight,
   now,
+  onHover,
+  onLeave,
 }: {
   columns: AgendaColumn[];
   startHour: number;
@@ -304,6 +357,8 @@ function AgendaGrid({
   hours: number[];
   gridHeight: number;
   now: Date;
+  onHover: (apt: AppointmentResponseDto, rect: DOMRect) => void;
+  onLeave: () => void;
 }) {
   const minColumn = columns.length > 4 ? "9rem" : "13rem";
   const template = `4rem repeat(${columns.length}, minmax(${minColumn}, 1fr))`;
@@ -417,6 +472,8 @@ function AgendaGrid({
                     left={`calc(${col * width}% + 2px)`}
                     width={`calc(${width}% - 4px)`}
                     showStaff={column.showStaff}
+                    onHover={onHover}
+                    onLeave={onLeave}
                   />
                 );
               })}
@@ -478,6 +535,9 @@ export default function AgendaPage() {
   );
   const [config, setConfig] = useState<BusinessConfigResponseDto | null>(null);
   const [schedules, setSchedules] = useState<BusinessScheduleResponseDto[]>([]);
+  const [exceptions, setExceptions] = useState<ScheduleExceptionResponseDto[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -488,6 +548,26 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate] = useState(getTodayYMD());
   const [filterStaffId, setFilterStaffId] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
+
+  const [hoveredAppointment, setHoveredAppointment] = useState<{
+    apt: AppointmentResponseDto;
+    left: number;
+    top: number;
+    below: boolean;
+  } | null>(null);
+
+  const handleAppointmentHover = (
+    apt: AppointmentResponseDto,
+    rect: DOMRect,
+  ) => {
+    const centerX = rect.left + rect.width / 2;
+    const below = rect.top < 150;
+    const left = Math.min(Math.max(centerX, 148), window.innerWidth - 148);
+    const top = below ? rect.bottom + 8 : rect.top - 8;
+    setHoveredAppointment({ apt, left, top, below });
+  };
+
+  const clearAppointmentHover = () => setHoveredAppointment(null);
 
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -526,14 +606,18 @@ export default function AgendaPage() {
       }
 
       try {
-        const [configRes, schedulesRes] = await Promise.all([
+        const [configRes, schedulesRes, exceptionsRes] = await Promise.all([
           api.get<BusinessConfigResponseDto>(`/businesses/${bizId}/config`),
           api.get<BusinessScheduleResponseDto[]>(
             `/businesses/${bizId}/schedules`,
           ),
+          api.get<ScheduleExceptionResponseDto[]>(
+            `/businesses/${bizId}/schedule-exceptions`,
+          ),
         ]);
         setConfig(configRes.data);
         setSchedules(schedulesRes.data);
+        setExceptions(exceptionsRes.data);
       } catch (err) {
         console.error("Error al cargar horarios del negocio:", err);
       }
@@ -577,14 +661,15 @@ export default function AgendaPage() {
   }, [activeWorkspace, selectedDate, view, refreshTrigger, page]);
 
   const scheduleFor = (dateStr: string) => {
-    const key = getWeekdayKey(dateStr);
-    const schedule = schedules.find((s) => s.dayOfWeek === key);
-    if (schedule) {
-      return {
-        open: timeToMinutes(schedule.openTime),
-        close: timeToMinutes(schedule.closeTime),
-        closed: schedule.isClosed,
-      };
+    const resolved = resolveDaySchedule(dateStr, schedules, exceptions);
+    if (resolved) {
+      if (resolved.closed) {
+        return { open: 0, close: 0, closed: true };
+      }
+      const bounds = periodsBounds(resolved.periods);
+      if (bounds) {
+        return { open: bounds.open, close: bounds.close, closed: false };
+      }
     }
     return {
       open: timeToMinutes(config?.defaultOpeningTime ?? "09:00:00"),
@@ -902,6 +987,8 @@ export default function AgendaPage() {
                       hours={hours}
                       gridHeight={gridHeight}
                       now={now}
+                      onHover={handleAppointmentHover}
+                      onLeave={clearAppointmentHover}
                     />
                   )}
                 </Card>
@@ -1061,6 +1148,15 @@ export default function AgendaPage() {
           </div>
         </form>
       </Modal>
+
+      {hoveredAppointment && (
+        <AppointmentTooltip
+          apt={hoveredAppointment.apt}
+          left={hoveredAppointment.left}
+          top={hoveredAppointment.top}
+          below={hoveredAppointment.below}
+        />
+      )}
     </div>
   );
 }

@@ -25,8 +25,10 @@ import { Modal } from "@/components/ui/Modal";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
 import type { UserResponseDto, UserUpdateDto } from "@/types";
-
-const MIN_PASSWORD_LENGTH = 6;
+import {
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+} from "@/lib/validation";
 
 const passwordStrength = (password: string) => {
   if (!password) return 0;
@@ -84,7 +86,7 @@ function formatMemberSince(value?: string): string | null {
 export default function PerfilPage() {
   const toast = useToast();
   const router = useRouter();
-  const { deleteAccount } = useAuth();
+  const { deleteAccount, logout } = useAuth();
   const { activeWorkspace, refreshWorkspaces } = useBusiness();
   const [loading, setLoading] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -157,7 +159,9 @@ export default function PerfilPage() {
     e.preventDefault();
     const errors: { newPassword?: string; confirmPassword?: string } = {};
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      errors.newPassword = `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+      errors.newPassword = `Usá al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+    } else if (newPassword.length > MAX_PASSWORD_LENGTH) {
+      errors.newPassword = `Usá como máximo ${MAX_PASSWORD_LENGTH} caracteres.`;
     }
     if (newPassword !== confirmPassword) {
       errors.confirmPassword = "Las contraseñas no coinciden.";
@@ -172,8 +176,10 @@ export default function PerfilPage() {
       setConfirmPassword("");
       toast.success(
         "Contraseña actualizada",
-        "Usá tu nueva contraseña la próxima vez que ingreses.",
+        "Por seguridad cerramos tu sesión. Iniciá sesión con tu nueva contraseña.",
       );
+      // Por seguridad, el backend revoca todas las sesiones al cambiar la contraseña.
+      await logout();
     } catch (err) {
       toast.error(
         "No pudimos actualizar la contraseña",
@@ -238,6 +244,7 @@ export default function PerfilPage() {
   const strength = passwordStrength(newPassword);
   const canSavePassword =
     newPassword.length >= MIN_PASSWORD_LENGTH &&
+    newPassword.length <= MAX_PASSWORD_LENGTH &&
     newPassword === confirmPassword;
 
   if (loading) {
@@ -356,6 +363,7 @@ export default function PerfilPage() {
                     label="Nueva contraseña"
                     hint={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres.`}
                     autoComplete="new-password"
+                    maxLength={MAX_PASSWORD_LENGTH}
                     placeholder="••••••••"
                     value={newPassword}
                     onChange={(e) => {
@@ -377,6 +385,7 @@ export default function PerfilPage() {
                   id="confirmPassword"
                   label="Confirmar nueva contraseña"
                   autoComplete="new-password"
+                  maxLength={MAX_PASSWORD_LENGTH}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => {

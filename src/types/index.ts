@@ -41,6 +41,7 @@ export interface RegisterRequestDto {
   email: string;
   password: string;
   phone?: string;
+  otpCode: string;
 }
 
 export interface UserResponseDto {
@@ -108,9 +109,7 @@ export interface BusinessResponseDto {
   description?: string;
   logoUrl?: string;
   ownerId: number;
-  reservationMode: ReservationMode;
   createdAt: string; // ISO 8601
-  config?: BusinessConfigResponseDto;
   address?: string;
   latitude?: number | null;
   longitude?: number | null;
@@ -169,22 +168,43 @@ export interface BusinessConfigResponseDto {
 }
 
 /* =========================================
-BUSINESS SCHEDULE (Horarios semanales)
-========================================= */
-export interface BusinessScheduleRequestDto {
-  dayOfWeek: DayOfWeek;
+ BUSINESS SCHEDULE (Horarios semanales + excepciones)
+ ========================================= */
+export interface SchedulePeriodDto {
   openTime: string; // "HH:mm" o "HH:mm:ss"
   closeTime: string;
+}
+
+export interface BusinessScheduleRequestDto {
+  dayOfWeek: DayOfWeek;
   isClosed: boolean;
+  periods: SchedulePeriodDto[];
 }
 
 export interface BusinessScheduleResponseDto {
   id: number;
-  businessId?: number;
   dayOfWeek: DayOfWeek;
-  openTime: string;
-  closeTime: string;
   isClosed: boolean;
+  periods: SchedulePeriodDto[];
+}
+
+export interface ScheduleExceptionRequestDto {
+  date: string; // "YYYY-MM-DD"
+  isClosed: boolean;
+  periods: SchedulePeriodDto[];
+}
+
+export interface ScheduleExceptionResponseDto {
+  id: number;
+  date: string;
+  isClosed: boolean;
+  periods: SchedulePeriodDto[];
+}
+
+export interface EffectiveScheduleResponseDto {
+  date: string;
+  isClosed: boolean;
+  periods: SchedulePeriodDto[];
 }
 
 /* =========================================
@@ -239,7 +259,8 @@ export interface StaffCreateRequestDto {
 export interface StaffResponseDto {
   id: number;
   customName: string;
-  userEmail: string;
+  /** Solo presente para el dueño del negocio; omitido en el catálogo público. */
+  userEmail?: string;
   hasClaimedAccount: boolean;
   services: ServiceResponseDto[];
 }

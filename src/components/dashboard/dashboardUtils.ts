@@ -111,7 +111,3 @@ const WEEKDAYS: DayOfWeek[] = [
 export function todayDayOfWeek(): DayOfWeek {
   return WEEKDAYS[new Date().getDay()];
 }
-
-export function formatHours(time: string): string {
-  return time.slice(0, 5);
-}

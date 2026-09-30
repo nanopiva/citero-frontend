@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
   BellRinging,
+  CalendarX,
   Clock,
   LinkSimple,
   MagnifyingGlass,
   MapPin,
+  Plus,
   ShieldCheck,
   SlidersHorizontal,
   Storefront,
@@ -28,11 +30,14 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ImageUploader } from "@/components/ui/ImageUploader";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { LocationPicker } from "@/components/ui/LocationPicker";
 import { Modal } from "@/components/ui/Modal";
 import { Pagination } from "@/components/ui/Pagination";
+import { PublicBookingLink } from "@/components/ui/PublicBookingLink";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { Switch } from "@/components/ui/Switch";
@@ -45,11 +50,14 @@ import {
   ClientReputationResponseDto,
   BusinessUpdateDto,
   BusinessScheduleRequestDto,
+  ScheduleExceptionResponseDto,
+  SchedulePeriodDto,
   ReservationMode,
   DayOfWeek,
   WorkspaceRole,
   PageResponse,
 } from "@/types";
+import { formatPeriodsLabel, weekdayKey } from "@/lib/schedule";
 
 const REPUTATION_PAGE_SIZE = 10;
 
@@ -68,6 +76,7 @@ interface BusinessConfigRequestForm {
 const TABS = [
   { id: "general", label: "General" },
   { id: "horarios", label: "Horarios" },
+  { id: "excepciones", label: "Excepciones" },
   { id: "reglas", label: "Reglas de reserva" },
   { id: "reputacion", label: "Reputación" },
 ] as const;
@@ -94,14 +103,27 @@ const ORDERED_DAYS = [
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+function formatDateLabel(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const label = date.toLocaleDateString("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function SectionHeader({
   icon,
   title,
   description,
+  hint,
 }: {
   icon: ReactNode;
   title: string;
   description?: string;
+  hint?: string;
 }) {
   return (
     <div className="flex items-start gap-3">
@@ -109,7 +131,10 @@ function SectionHeader({
         {icon}
       </span>
       <div>
-        <h2 className="text-body font-semibold text-ink-navy">{title}</h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-body font-semibold text-ink-navy">{title}</h2>
+          {hint && <InfoTooltip text={hint} />}
+        </div>
         {description && (
           <p className="mt-0.5 text-body-sm text-slate-gray">{description}</p>
         )}
@@ -163,6 +188,20 @@ export default function ConfiguracionPage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [business, setBusiness] = useState<BusinessResponseDto | null>(null);
   const [schedules, setSchedules] = useState<BusinessScheduleRequestDto[]>([]);
+  const [exceptions, setExceptions] = useState<ScheduleExceptionResponseDto[]>(
+    [],
+  );
+  const [isSavingException, setIsSavingException] = useState(false);
+  const [exceptionError, setExceptionError] = useState<string | null>(null);
+  const [newException, setNewException] = useState<{
+    date: string;
+    isClosed: boolean;
+    periods: SchedulePeriodDto[];
+  }>({
+    date: "",
+    isClosed: false,
+    periods: [{ openTime: "09:00", closeTime: "18:00" }],
+  });
   const [reputations, setReputations] = useState<ClientReputationResponseDto[]>(
     [],
   );
@@ -252,12 +291,15 @@ export default function ConfiguracionPage() {
           longitude: currentBusiness.longitude || null,
         });
 
-        const [configRes, schedulesRes] = await Promise.all([
+        const [configRes, schedulesRes, exceptionsRes] = await Promise.all([
           api.get<BusinessConfigResponseDto>(
             `/businesses/${currentBusinessId}/config`,
           ),
           api.get<BusinessScheduleResponseDto[]>(
             `/businesses/${currentBusinessId}/schedules`,
+          ),
+          api.get<ScheduleExceptionResponseDto[]>(
+            `/businesses/${currentBusinessId}/schedule-exceptions`,
           ),
         ]);
 
@@ -277,14 +319,21 @@ export default function ConfiguracionPage() {
 
         const mappedSchedules = ORDERED_DAYS.map((day) => {
           const existing = schedulesRes.data.find((s) => s.dayOfWeek === day);
+          const periods =
+            existing && existing.periods && existing.periods.length > 0
+              ? existing.periods.map((period) => ({
+                  openTime: period.openTime.substring(0, 5),
+                  closeTime: period.closeTime.substring(0, 5),
+                }))
+              : [{ openTime: "09:00", closeTime: "18:00" }];
           return {
             dayOfWeek: day,
-            openTime: existing ? existing.openTime.substring(0, 5) : "09:00",
-            closeTime: existing ? existing.closeTime.substring(0, 5) : "18:00",
             isClosed: existing ? existing.isClosed : false,
+            periods,
           };
         });
         setSchedules(mappedSchedules);
+        setExceptions(exceptionsRes.data);
       } catch (err) {
         setPageError(
           parseApiError(
@@ -388,13 +437,52 @@ export default function ConfiguracionPage() {
     }
   };
 
-  const handleScheduleChange = (
+  const formatTime = (value: string) =>
+    value.length === 5 ? `${value}:00` : value;
+
+  const updateDayPeriods = (
     day: DayOfWeek,
-    field: keyof BusinessScheduleRequestDto,
-    value: unknown,
+    updater: (periods: SchedulePeriodDto[]) => SchedulePeriodDto[],
   ) => {
     setSchedules((prev) =>
-      prev.map((s) => (s.dayOfWeek === day ? { ...s, [field]: value } : s)),
+      prev.map((s) =>
+        s.dayOfWeek === day ? { ...s, periods: updater(s.periods) } : s,
+      ),
+    );
+  };
+
+  const handlePeriodChange = (
+    day: DayOfWeek,
+    index: number,
+    field: keyof SchedulePeriodDto,
+    value: string,
+  ) => {
+    updateDayPeriods(day, (periods) =>
+      periods.map((period, i) =>
+        i === index ? { ...period, [field]: value } : period,
+      ),
+    );
+  };
+
+  const handleAddPeriod = (day: DayOfWeek) => {
+    updateDayPeriods(day, (periods) => {
+      const last = periods[periods.length - 1];
+      return [
+        ...periods,
+        { openTime: last ? last.closeTime : "09:00", closeTime: "18:00" },
+      ];
+    });
+  };
+
+  const handleRemovePeriod = (day: DayOfWeek, index: number) => {
+    updateDayPeriods(day, (periods) =>
+      periods.length <= 1 ? periods : periods.filter((_, i) => i !== index),
+    );
+  };
+
+  const handleToggleClosed = (day: DayOfWeek, isClosed: boolean) => {
+    setSchedules((prev) =>
+      prev.map((s) => (s.dayOfWeek === day ? { ...s, isClosed } : s)),
     );
   };
 
@@ -403,14 +491,19 @@ export default function ConfiguracionPage() {
     if (!activeWorkspace) return;
     try {
       setIsSavingSchedules(true);
-      const formattedSchedules = schedules.map((s) => ({
-        ...s,
-        openTime: s.openTime.length === 5 ? `${s.openTime}:00` : s.openTime,
-        closeTime: s.closeTime.length === 5 ? `${s.closeTime}:00` : s.closeTime,
+      const payload = schedules.map((s) => ({
+        dayOfWeek: s.dayOfWeek,
+        isClosed: s.isClosed,
+        periods: s.isClosed
+          ? []
+          : s.periods.map((period) => ({
+              openTime: formatTime(period.openTime),
+              closeTime: formatTime(period.closeTime),
+            })),
       }));
       await api.put(
         `/businesses/${activeWorkspace.businessId}/schedules`,
-        formattedSchedules,
+        payload,
       );
       toast.success("Horarios actualizados", "Los cambios ya están activos.");
     } catch (err) {
@@ -420,6 +513,121 @@ export default function ConfiguracionPage() {
       );
     } finally {
       setIsSavingSchedules(false);
+    }
+  };
+
+  const handleExceptionDateChange = (date: string) => {
+    setExceptionError(null);
+    setNewException((prev) => {
+      if (!date) return { ...prev, date: "" };
+      // Precarga el horario semanal de ese día para editar sobre una base conocida.
+      const weekly = schedules.find((s) => s.dayOfWeek === weekdayKey(date));
+      const periods =
+        weekly && weekly.periods.length > 0
+          ? weekly.periods.map((period) => ({ ...period }))
+          : [{ openTime: "09:00", closeTime: "18:00" }];
+      return { date, isClosed: weekly?.isClosed ?? false, periods };
+    });
+  };
+
+  const handleExceptionPeriodChange = (
+    index: number,
+    field: keyof SchedulePeriodDto,
+    value: string,
+  ) => {
+    setNewException((prev) => ({
+      ...prev,
+      periods: prev.periods.map((period, i) =>
+        i === index ? { ...period, [field]: value } : period,
+      ),
+    }));
+  };
+
+  const handleAddExceptionPeriod = () => {
+    setNewException((prev) => {
+      const last = prev.periods[prev.periods.length - 1];
+      return {
+        ...prev,
+        periods: [
+          ...prev.periods,
+          { openTime: last ? last.closeTime : "09:00", closeTime: "18:00" },
+        ],
+      };
+    });
+  };
+
+  const handleRemoveExceptionPeriod = (index: number) => {
+    setNewException((prev) => ({
+      ...prev,
+      periods:
+        prev.periods.length <= 1
+          ? prev.periods
+          : prev.periods.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSaveException = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!activeWorkspace) return;
+    setExceptionError(null);
+    if (!newException.date) {
+      setExceptionError("Elegí una fecha para la excepción.");
+      return;
+    }
+    try {
+      setIsSavingException(true);
+      const res = await api.put<ScheduleExceptionResponseDto>(
+        `/businesses/${activeWorkspace.businessId}/schedule-exceptions`,
+        {
+          date: newException.date,
+          isClosed: newException.isClosed,
+          periods: newException.isClosed
+            ? []
+            : newException.periods.map((period) => ({
+                openTime: formatTime(period.openTime),
+                closeTime: formatTime(period.closeTime),
+              })),
+        },
+      );
+      setExceptions((prev) =>
+        [...prev.filter((item) => item.date !== res.data.date), res.data].sort(
+          (a, b) => a.date.localeCompare(b.date),
+        ),
+      );
+      setNewException({
+        date: "",
+        isClosed: false,
+        periods: [{ openTime: "09:00", closeTime: "18:00" }],
+      });
+      toast.success(
+        "Excepción guardada",
+        "El horario de esa fecha quedó actualizado.",
+      );
+    } catch (err) {
+      setExceptionError(
+        parseApiError(err, "No pudimos guardar la excepción.").message,
+      );
+    } finally {
+      setIsSavingException(false);
+    }
+  };
+
+  const handleDeleteException = async (date: string) => {
+    if (!activeWorkspace) return;
+    try {
+      await api.delete(
+        `/businesses/${activeWorkspace.businessId}/schedule-exceptions/${date}`,
+      );
+      setExceptions((prev) => prev.filter((item) => item.date !== date));
+      toast.success(
+        "Excepción eliminada",
+        "Esa fecha vuelve a usar el horario semanal.",
+      );
+    } catch (err) {
+      toast.error(
+        "No pudimos eliminar la excepción",
+        parseApiError(err, "Intentá de nuevo.").message,
+      );
     }
   };
 
@@ -515,9 +723,7 @@ export default function ConfiguracionPage() {
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:ml-64 lg:px-10 lg:py-8">
           <RoleGuard allowedRoles={[WorkspaceRole.OWNER]}>
             {loading ? (
-              <div className="mx-auto flex min-h-[480px] max-w-page items-center justify-center">
-                <span className="h-8 w-8 animate-pulse rounded-full bg-pebble" />
-              </div>
+              <PageSkeleton rows={4} />
             ) : (
               <div className="mx-auto max-w-page space-y-6">
                 {pageError && <Alert variant="error">{pageError}</Alert>}
@@ -609,6 +815,8 @@ export default function ConfiguracionPage() {
                                   disabled
                                 />
                               </div>
+
+                              <PublicBookingLink slug={business.slug} />
 
                               <div>
                                 <Label hint="Una breve descripción que verán tus clientes al reservar.">
@@ -819,73 +1027,104 @@ export default function ConfiguracionPage() {
                             <SectionHeader
                               icon={<Clock className="h-5 w-5" weight="regular" />}
                               title="Horarios de atención"
-                              description="Definí los horarios en los que tu negocio está abierto. Los clientes solo verán turnos dentro de este rango."
+                              description="Cargá una o más franjas por día (por ejemplo, mañana y tarde). Los clientes solo verán turnos dentro de estas franjas."
                             />
 
                             <div className="space-y-3">
                               {schedules.map((day) => (
                                 <div
                                   key={day.dayOfWeek}
-                                  className="flex flex-col gap-4 rounded-xl border border-hairline bg-paper p-4 transition-colors hover:border-signal-blue/30 hover:bg-cloud sm:flex-row sm:items-center"
+                                  className="rounded-xl border border-hairline bg-paper p-4 transition-colors hover:border-signal-blue/30"
                                 >
-                                  <div className="sm:w-28">
+                                  <div className="flex items-center justify-between gap-4">
                                     <p className="text-body-sm font-semibold text-ink-navy">
                                       {DAYS_TRANSLATION[day.dayOfWeek]}
                                     </p>
+                                    <label className="flex cursor-pointer items-center gap-2">
+                                      <span className="text-body-sm text-slate-gray">
+                                        Cerrado
+                                      </span>
+                                      <Switch
+                                        checked={day.isClosed}
+                                        onChange={(value) =>
+                                          handleToggleClosed(day.dayOfWeek, value)
+                                        }
+                                        label={`Cerrar ${DAYS_TRANSLATION[day.dayOfWeek]}`}
+                                      />
+                                    </label>
                                   </div>
 
-                                  <div className="flex flex-1 items-center gap-3">
-                                    <div className="flex-1">
-                                      <Input
-                                        type="time"
-                                        value={day.openTime}
-                                        disabled={day.isClosed}
-                                        onChange={(e) =>
-                                          handleScheduleChange(
-                                            day.dayOfWeek,
-                                            "openTime",
-                                            e.target.value,
-                                          )
-                                        }
-                                        required={!day.isClosed}
-                                      />
+                                  {!day.isClosed && (
+                                    <div className="mt-3 space-y-2">
+                                      {day.periods.map((period, index) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <div className="flex-1">
+                                            <Input
+                                              type="time"
+                                              aria-label={`Apertura ${DAYS_TRANSLATION[day.dayOfWeek]}`}
+                                              value={period.openTime}
+                                              onChange={(e) =>
+                                                handlePeriodChange(
+                                                  day.dayOfWeek,
+                                                  index,
+                                                  "openTime",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              required
+                                            />
+                                          </div>
+                                          <span className="text-body-sm text-slate-gray">
+                                            a
+                                          </span>
+                                          <div className="flex-1">
+                                            <Input
+                                              type="time"
+                                              aria-label={`Cierre ${DAYS_TRANSLATION[day.dayOfWeek]}`}
+                                              value={period.closeTime}
+                                              onChange={(e) =>
+                                                handlePeriodChange(
+                                                  day.dayOfWeek,
+                                                  index,
+                                                  "closeTime",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              required
+                                            />
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleRemovePeriod(
+                                                day.dayOfWeek,
+                                                index,
+                                              )
+                                            }
+                                            disabled={day.periods.length <= 1}
+                                            aria-label={`Quitar franja de ${DAYS_TRANSLATION[day.dayOfWeek]}`}
+                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
+                                          >
+                                            <Trash
+                                              className="h-4 w-4"
+                                              weight="regular"
+                                            />
+                                          </button>
+                                        </div>
+                                      ))}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddPeriod(day.dayOfWeek)}
+                                        className="inline-flex items-center gap-1.5 text-body-sm font-medium text-signal-blue transition-colors hover:text-deep-cobalt"
+                                      >
+                                        <Plus className="h-4 w-4" weight="bold" />
+                                        Agregar franja
+                                      </button>
                                     </div>
-                                    <span className="text-body-sm text-slate-gray">
-                                      a
-                                    </span>
-                                    <div className="flex-1">
-                                      <Input
-                                        type="time"
-                                        value={day.closeTime}
-                                        disabled={day.isClosed}
-                                        onChange={(e) =>
-                                          handleScheduleChange(
-                                            day.dayOfWeek,
-                                            "closeTime",
-                                            e.target.value,
-                                          )
-                                        }
-                                        required={!day.isClosed}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <label className="flex cursor-pointer items-center justify-between gap-2 sm:w-32 sm:justify-end">
-                                    <span className="text-body-sm text-slate-gray">
-                                      Cerrado
-                                    </span>
-                                    <Switch
-                                      checked={day.isClosed}
-                                      onChange={(value) =>
-                                        handleScheduleChange(
-                                          day.dayOfWeek,
-                                          "isClosed",
-                                          value,
-                                        )
-                                      }
-                                      label={`Cerrar ${DAYS_TRANSLATION[day.dayOfWeek]}`}
-                                    />
-                                  </label>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -896,6 +1135,193 @@ export default function ConfiguracionPage() {
                               </Button>
                             </div>
                           </form>
+                        )}
+
+                        {activeTab === "excepciones" && (
+                          <div className="space-y-8">
+                            <SectionHeader
+                              icon={
+                                <CalendarX className="h-5 w-5" weight="regular" />
+                              }
+                              title="Excepciones"
+                              description="Cambiá el horario de una fecha puntual (un feriado, un corte de mediodía) sin tocar la regla semanal."
+                              hint="Una excepción reemplaza el horario de ese día. Si la eliminás, esa fecha vuelve a usar el horario semanal."
+                            />
+
+                            <form
+                              className="space-y-5 rounded-xl border border-hairline bg-paper p-5"
+                              onSubmit={handleSaveException}
+                            >
+                              <div className="grid gap-5 sm:grid-cols-2">
+                                <div>
+                                  <Label
+                                    required
+                                    hint="La fecha de la excepción."
+                                  >
+                                    Fecha
+                                  </Label>
+                                  <Input
+                                    type="date"
+                                    className="mt-2"
+                                    value={newException.date}
+                                    onChange={(e) =>
+                                      handleExceptionDateChange(e.target.value)
+                                    }
+                                    required
+                                  />
+                                </div>
+                                <div className="flex items-end">
+                                  <div className="w-full">
+                                    <ToggleRow
+                                      icon={
+                                        <CalendarX
+                                          className="h-4 w-4"
+                                          weight="regular"
+                                        />
+                                      }
+                                      title="Cerrado todo el día"
+                                      description="No se ofrecerán turnos esa fecha."
+                                      checked={newException.isClosed}
+                                      onChange={(value) =>
+                                        setNewException((prev) => ({
+                                          ...prev,
+                                          isClosed: value,
+                                        }))
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {!newException.isClosed && (
+                                <div className="space-y-2">
+                                  <Label>Franjas de ese día</Label>
+                                  {newException.periods.map((period, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <div className="flex-1">
+                                        <Input
+                                          type="time"
+                                          aria-label="Apertura de la excepción"
+                                          value={period.openTime}
+                                          onChange={(e) =>
+                                            handleExceptionPeriodChange(
+                                              index,
+                                              "openTime",
+                                              e.target.value,
+                                            )
+                                          }
+                                          required
+                                        />
+                                      </div>
+                                      <span className="text-body-sm text-slate-gray">
+                                        a
+                                      </span>
+                                      <div className="flex-1">
+                                        <Input
+                                          type="time"
+                                          aria-label="Cierre de la excepción"
+                                          value={period.closeTime}
+                                          onChange={(e) =>
+                                            handleExceptionPeriodChange(
+                                              index,
+                                              "closeTime",
+                                              e.target.value,
+                                            )
+                                          }
+                                          required
+                                        />
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleRemoveExceptionPeriod(index)
+                                        }
+                                        disabled={
+                                          newException.periods.length <= 1
+                                        }
+                                        aria-label="Quitar franja"
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
+                                      >
+                                        <Trash
+                                          className="h-4 w-4"
+                                          weight="regular"
+                                        />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={handleAddExceptionPeriod}
+                                    className="inline-flex items-center gap-1.5 text-body-sm font-medium text-signal-blue transition-colors hover:text-deep-cobalt"
+                                  >
+                                    <Plus className="h-4 w-4" weight="bold" />
+                                    Agregar franja
+                                  </button>
+                                </div>
+                              )}
+
+                              {exceptionError && (
+                                <Alert variant="error">{exceptionError}</Alert>
+                              )}
+
+                              <div className="flex justify-end border-t border-hairline pt-4">
+                                <Button type="submit" loading={isSavingException}>
+                                  Guardar excepción
+                                </Button>
+                              </div>
+                            </form>
+
+                            <div>
+                              <h3 className="text-body font-semibold text-ink-navy">
+                                Excepciones cargadas
+                              </h3>
+                              {exceptions.length === 0 ? (
+                                <p className="mt-2 text-body-sm text-slate-gray">
+                                  Sin excepciones. Agregá un horario distinto
+                                  para una fecha puntual, por ejemplo un
+                                  feriado o un corte de mediodía.
+                                </p>
+                              ) : (
+                                <ul className="mt-3 divide-y divide-hairline overflow-hidden rounded-xl border border-hairline">
+                                  {exceptions.map((exception) => (
+                                    <li
+                                      key={exception.id}
+                                      className="flex items-center justify-between gap-4 px-5 py-3.5"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="truncate text-body-sm font-semibold text-ink-navy">
+                                          {formatDateLabel(exception.date)}
+                                        </p>
+                                        <p className="truncate text-caption text-slate-gray">
+                                          {exception.isClosed
+                                            ? "Cerrado"
+                                            : formatPeriodsLabel(
+                                                exception.periods,
+                                              )}
+                                        </p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleDeleteException(exception.date)
+                                        }
+                                        aria-label={`Eliminar excepción del ${exception.date}`}
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-red-50 hover:text-red-500 sm:h-9 sm:w-9"
+                                      >
+                                        <Trash
+                                          className="h-4 w-4"
+                                          weight="regular"
+                                        />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
                         )}
 
                         {activeTab === "reglas" && (
@@ -972,6 +1398,7 @@ export default function ConfiguracionPage() {
                                 }
                                 title="Sistema de reputación"
                                 description="Strikes automáticos por cancelaciones tardías o ausencias."
+                                hint="Suma un strike al cliente por cada cancelación tardía o ausencia. Al superar el máximo configurado, queda bloqueado y no puede reservar."
                               />
 
                               <ToggleRow

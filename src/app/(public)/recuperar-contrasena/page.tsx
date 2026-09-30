@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { parseApiError } from "@/lib/apiError";
 import { clearFieldError, focusFirstError, type FieldErrors } from "@/lib/form";
 import { validateEmail } from "@/lib/validation";
+import { setResetEmail } from "@/lib/resetEmail";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Alert } from "@/components/ui/Alert";
@@ -37,6 +38,7 @@ export default function RecuperarContrasenaPage() {
     setIsSubmitting(true);
     try {
       await api.post("/auth/forgot-password", { email: email.trim() });
+      setResetEmail(email.trim());
       setStep("success");
     } catch (err) {
       const parsed = parseApiError(
@@ -111,11 +113,7 @@ export default function RecuperarContrasenaPage() {
                 minutos.
               </Alert>
 
-              <ButtonLink
-                href={`/resetear-contrasena?email=${encodeURIComponent(email.trim())}`}
-                size="lg"
-                fullWidth
-              >
+              <ButtonLink href="/resetear-contrasena" size="lg" fullWidth>
                 Ingresar código
               </ButtonLink>
 

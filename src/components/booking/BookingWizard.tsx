@@ -19,11 +19,12 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import api from "@/lib/api";
-import type {
-  AvailabilityResponseDto,
-  BusinessResponseDto,
-  ServiceResponseDto,
-  StaffResponseDto,
+import {
+  ReservationMode,
+  type AvailabilityResponseDto,
+  type BusinessResponseDto,
+  type ServiceResponseDto,
+  type StaffResponseDto,
 } from "@/types";
 
 type Step = 1 | 2 | 3;
@@ -32,6 +33,7 @@ type BookingWizardProps = {
   business: BusinessResponseDto;
   services: ServiceResponseDto[];
   staffList: StaffResponseDto[];
+  reservationMode: ReservationMode;
   slug: string;
 };
 
@@ -76,6 +78,7 @@ export function BookingWizard({
   business,
   services,
   staffList,
+  reservationMode,
   slug,
 }: BookingWizardProps) {
   const router = useRouter();
@@ -279,7 +282,7 @@ export function BookingWizard({
     },
   ];
 
-  const isOtp = business.reservationMode === "AUTHENTICATED";
+  const isOtp = reservationMode === ReservationMode.AUTHENTICATED;
 
   return (
     <>
@@ -455,34 +458,36 @@ export function BookingWizard({
                   />
                 ) : (
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      aria-pressed={selectedStaff === null}
-                      onClick={() => handleSelectStaff(null)}
-                      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-all ${
-                        selectedStaff === null
-                          ? "border-2 border-signal-blue bg-[#e6f0ff]"
-                          : "border-hairline bg-paper hover:border-signal-blue/40 hover:bg-pebble"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                    {filteredStaff.length > 1 && (
+                      <button
+                        type="button"
+                        aria-pressed={selectedStaff === null}
+                        onClick={() => handleSelectStaff(null)}
+                        className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-all ${
                           selectedStaff === null
-                            ? "bg-signal-blue text-paper"
-                            : "bg-pebble text-ink-navy"
+                            ? "border-2 border-signal-blue bg-[#e6f0ff]"
+                            : "border-hairline bg-paper hover:border-signal-blue/40 hover:bg-pebble"
                         }`}
                       >
-                        <UsersThree className="h-5 w-5" weight="regular" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-body font-semibold text-ink-navy">
-                          Cualquier profesional
+                        <span
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                            selectedStaff === null
+                              ? "bg-signal-blue text-paper"
+                              : "bg-pebble text-ink-navy"
+                          }`}
+                        >
+                          <UsersThree className="h-5 w-5" weight="regular" />
                         </span>
-                        <span className="block text-caption text-slate-gray">
-                          El primero disponible
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-body font-semibold text-ink-navy">
+                            Cualquier profesional
+                          </span>
+                          <span className="block text-caption text-slate-gray">
+                            El primero disponible
+                          </span>
                         </span>
-                      </span>
-                    </button>
+                      </button>
+                    )}
 
                     {filteredStaff.map((staff) => {
                       const isSelected = selectedStaff === staff.id;

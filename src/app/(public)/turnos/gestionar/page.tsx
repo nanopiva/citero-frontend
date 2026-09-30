@@ -87,6 +87,7 @@ function GestionarTurnoContent() {
   const { user } = useAuth();
   const reduce = useReducedMotion();
   const appointmentId = searchParams.get("id");
+  const token = searchParams.get("token");
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -118,6 +119,7 @@ function GestionarTurnoContent() {
       try {
         const res = await api.get<PublicAppointment>(
           `/appointments/public/${appointmentId}`,
+          { params: token ? { token } : undefined },
         );
         if (!active) return;
         setAppointment(res.data);
@@ -133,7 +135,7 @@ function GestionarTurnoContent() {
     return () => {
       active = false;
     };
-  }, [appointmentId, router]);
+  }, [appointmentId, token, router]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -157,9 +159,14 @@ function GestionarTurnoContent() {
     setIsSendingOtp(true);
     try {
       await api.post(
-        `/appointments/public/${appointment.id}/send-cancellation-otp?email=${encodeURIComponent(
-          email.trim(),
-        )}`,
+        `/appointments/public/${appointment.id}/send-cancellation-otp`,
+        null,
+        {
+          params: {
+            email: email.trim(),
+            ...(token ? { token } : {}),
+          },
+        },
       );
       setStep("otp");
     } catch (err) {
@@ -241,9 +248,14 @@ function GestionarTurnoContent() {
     setIsSendingOtp(true);
     try {
       await api.post(
-        `/appointments/public/${appointment.id}/send-cancellation-otp?email=${encodeURIComponent(
-          email.trim(),
-        )}`,
+        `/appointments/public/${appointment.id}/send-cancellation-otp`,
+        null,
+        {
+          params: {
+            email: email.trim(),
+            ...(token ? { token } : {}),
+          },
+        },
       );
       setResendMessage("Te enviamos un código nuevo. Revisá tu email.");
       setCooldown(RESEND_COOLDOWN_SECONDS);

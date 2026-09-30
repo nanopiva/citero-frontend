@@ -14,7 +14,7 @@ import { NextAppointment } from "./NextAppointment";
 import { RevenuePanel } from "./RevenuePanel";
 import { TopServices } from "./TopServices";
 import { ConfigPanel } from "./ConfigPanel";
-import { CopyPublicLink } from "./CopyPublicLink";
+import { PublicBookingLink } from "@/components/ui/PublicBookingLink";
 import { DashboardSkeleton, ErrorPanel } from "./DashboardStates";
 import { formatCurrency, todayLong } from "./dashboardUtils";
 
@@ -58,9 +58,10 @@ export function OwnerDashboard({
             <CalendarDots className="h-4 w-4" weight="bold" />
             Abrir agenda
           </ButtonLink>
-          <CopyPublicLink slug={workspace.slug} />
         </div>
       </header>
+
+      <PublicBookingLink slug={workspace.slug} />
 
       <StatsStrip>
         <StatItem
