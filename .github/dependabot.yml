@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 5
     groups:
       # react y react-dom (y sus tipos) deben moverse siempre juntos.
@@ -17,8 +17,13 @@ updates:
         patterns:
           - "next"
           - "eslint-config-next"
+    # No abrir PRs automáticos por saltos de major (rompen el toolchain: p.ej. TypeScript 7).
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
