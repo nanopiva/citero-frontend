@@ -7,6 +7,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/ui/Button";
 import { useCurrentMinute } from "@/hooks/useCurrentMinute";
+import { wallClockToMs } from "@/lib/datetime";
 import { ROUTES, type WorkspaceResponseDto } from "@/types";
 import type { DashboardData } from "@/hooks/useDashboardData";
 import { StatItem, StatsStrip } from "./StatItem";
@@ -37,16 +38,21 @@ export function StaffDashboard({
     .filter(
       (appointment) =>
         appointment.status === "CONFIRMED" &&
-        +new Date(appointment.startTime) >= now,
+        wallClockToMs(appointment.startTime, appointment.businessTimezone) >=
+          now,
     )
-    .sort((a, b) => +new Date(a.startTime) - +new Date(b.startTime))[0];
+    .sort(
+      (a, b) =>
+        wallClockToMs(a.startTime, a.businessTimezone) -
+        wallClockToMs(b.startTime, b.businessTimezone),
+    )[0];
 
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-caption font-semibold uppercase tracking-wider text-signal-blue">
-            {todayLong()}
+            {todayLong(workspace.timezone)}
           </p>
           <h1 className="mt-2 text-subheading font-bold leading-subheading text-ink-navy sm:text-heading-sm">
             Tu agenda de hoy

@@ -33,6 +33,10 @@ export function ImageUploader({
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
 
+  // Durante la subida se muestra el archivo elegido; terminada (éxito o error) se
+  // muestra la URL canónica, así un fallo no deja una imagen "fantasma".
+  const displayUrl = loading ? (preview ?? value) : value;
+
   useEffect(
     () => () => {
       if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
@@ -85,11 +89,11 @@ export function ImageUploader({
             : "border-hairline bg-pebble hover:border-signal-blue",
         ].join(" ")}
       >
-        {preview ? (
+        {displayUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={preview}
+              src={displayUrl}
               alt={label ?? "Imagen"}
               className="h-full w-full object-cover"
             />

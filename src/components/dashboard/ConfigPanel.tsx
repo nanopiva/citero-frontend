@@ -41,9 +41,11 @@ function ConfigRow({
 export function ConfigPanel({
   config,
   schedules,
+  timeZone,
 }: {
   config: BusinessConfigResponseDto | null;
   schedules: BusinessScheduleResponseDto[];
+  timeZone?: string | null;
 }) {
   const modeLabel =
     config?.reservationMode === ReservationMode.AUTHENTICATED
@@ -53,7 +55,7 @@ export function ConfigPanel({
         : "Sin definir";
 
   const todaySchedule = schedules.find(
-    (schedule) => schedule.dayOfWeek === todayDayOfWeek(),
+    (schedule) => schedule.dayOfWeek === todayDayOfWeek(timeZone),
   );
   const hoursLabel = !todaySchedule
     ? "Sin horario"

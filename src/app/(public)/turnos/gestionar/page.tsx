@@ -16,9 +16,11 @@ import {
 } from "@phosphor-icons/react";
 import api from "@/lib/api";
 import { parseApiError } from "@/lib/apiError";
+import { wallClockToMs } from "@/lib/datetime";
 import { clearFieldError, focusFirstError, type FieldErrors } from "@/lib/form";
 import { validateEmail, validateOtp, OTP_LENGTH } from "@/lib/validation";
 import { useAuth } from "@/context/AuthContext";
+import { useCurrentMinute } from "@/hooks/useCurrentMinute";
 import { Navbar } from "@/components/layout/Navbar";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
@@ -29,6 +31,7 @@ import { TextField } from "@/components/ui/TextField";
 interface PublicAppointment {
   id: number;
   businessName: string;
+  businessTimezone?: string;
   serviceName: string;
   staffName: string;
   startTime: string;
@@ -104,9 +107,14 @@ function GestionarTurnoContent() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [cooldown, setCooldown] = useState(0);
 
+  const minute = useCurrentMinute();
   const email = emailInput ?? user?.email ?? "";
   const isOwner = !!appointment?.ownedByViewer;
-  const canCancel = appointment?.status === "CONFIRMED";
+  const canCancel =
+    !!appointment &&
+    appointment.status === "CONFIRMED" &&
+    wallClockToMs(appointment.startTime, appointment.businessTimezone) >
+      minute * 60_000;
 
   useEffect(() => {
     if (!appointmentId) {

@@ -2,6 +2,7 @@
 
 import { ClockCountdown } from "@phosphor-icons/react";
 import { useCurrentMinute } from "@/hooks/useCurrentMinute";
+import { wallClockToMs } from "@/lib/datetime";
 import type { AppointmentResponseDto } from "@/types";
 import { Panel } from "./Panel";
 import { formatTime } from "./dashboardUtils";
@@ -18,12 +19,19 @@ export function NextAppointment({
     .filter(
       (appointment) =>
         appointment.status === "CONFIRMED" &&
-        +new Date(appointment.startTime) >= now,
+        wallClockToMs(appointment.startTime, appointment.businessTimezone) >=
+          now,
     )
-    .sort((a, b) => +new Date(a.startTime) - +new Date(b.startTime))[0];
+    .sort(
+      (a, b) =>
+        wallClockToMs(a.startTime, a.businessTimezone) -
+        wallClockToMs(b.startTime, b.businessTimezone),
+    )[0];
 
   const minutesUntil = next
-    ? Math.round((+new Date(next.startTime) - now) / 60_000)
+    ? Math.round(
+        (wallClockToMs(next.startTime, next.businessTimezone) - now) / 60_000,
+      )
     : 0;
   const whenLabel = !next
     ? ""

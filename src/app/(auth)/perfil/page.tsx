@@ -138,7 +138,8 @@ export default function PerfilPage() {
     e.preventDefault();
     try {
       setIsSavingProfile(true);
-      const payload: UserUpdateDto = { phone: phone.trim() || undefined };
+      // Se envía el teléfono tal cual (vacío = borrar); undefined lo ignoraría el backend.
+      const payload: UserUpdateDto = { phone: phone.trim() };
       const res = await api.put<UserResponseDto>("/users/me", payload);
       setPhone(res.data.phone || "");
       toast.success(

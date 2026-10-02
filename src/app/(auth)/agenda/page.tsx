@@ -34,6 +34,10 @@ import {
   type ScheduleExceptionResponseDto,
   type PageResponse,
 } from "@/types";
+import {
+  todayYMD as todayYMDInZone,
+  wallClockParts,
+} from "@/lib/datetime";
 import { periodsBounds, resolveDaySchedule } from "@/lib/schedule";
 
 const AGENDA_PAGE_SIZE = 50;
@@ -75,11 +79,7 @@ const formatTimeRange = (start: string, end: string) =>
 
 const formatHour = (hour: number) => `${String(hour).padStart(2, "0")}:00`;
 
-const getTodayYMD = () => {
-  const d = new Date();
-  const tzOffset = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tzOffset).toISOString().split("T")[0];
-};
+const getTodayYMD = (timeZone?: string | null) => todayYMDInZone(timeZone);
 
 const getWeekDays = (dateStr: string) => {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -348,6 +348,7 @@ function AgendaGrid({
   hours,
   gridHeight,
   now,
+  timeZone,
   onHover,
   onLeave,
 }: {
@@ -357,6 +358,7 @@ function AgendaGrid({
   hours: number[];
   gridHeight: number;
   now: Date;
+  timeZone?: string | null;
   onHover: (apt: AppointmentResponseDto, rect: DOMRect) => void;
   onLeave: () => void;
 }) {
@@ -421,8 +423,9 @@ function AgendaGrid({
 
         {columns.map((column) => {
           const positioned = layoutAppointments(column.appointments);
+          const nowParts = wallClockParts(now, timeZone);
           const nowTop =
-            ((now.getHours() - startHour) * 60 + now.getMinutes()) *
+            ((nowParts.hours - startHour) * 60 + nowParts.minutes) *
             PIXELS_PER_MINUTE;
           const showNow =
             column.isToday && nowTop >= 0 && nowTop <= gridHeight;
@@ -526,6 +529,7 @@ function AgendaEmptyState({
 
 export default function AgendaPage() {
   const { activeWorkspace } = useBusiness();
+  const timeZone = activeWorkspace?.timezone;
   const canManage = activeWorkspace?.role === WorkspaceRole.OWNER;
 
   const [staffList, setStaffList] = useState<StaffResponseDto[]>([]);
@@ -587,8 +591,14 @@ export default function AgendaPage() {
     return () => clearInterval(id);
   }, []);
 
+  // Al conocerse la zona horaria del negocio, posicionamos el calendario en su "hoy".
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedDate(getTodayYMD(timeZone));
+  }, [timeZone]);
+
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
-  const todayYMD = getTodayYMD();
+  const todayYMD = getTodayYMD(timeZone);
 
   useEffect(() => {
     if (!activeWorkspace) return;
@@ -703,8 +713,9 @@ export default function AgendaPage() {
     const startHour = Math.max(0, Math.floor(open / 60));
     const endHour = Math.min(24, Math.max(startHour + 1, Math.ceil(close / 60)));
     return { startHour, endHour };
+    // scheduleFor se recrea en cada render; se listan las fuentes (incl. exceptions).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, selectedDate, weekDays, schedules, config, appointments]);
+  }, [view, selectedDate, weekDays, schedules, exceptions, config, appointments]);
 
   const hours = useMemo(
     () =>
@@ -768,7 +779,7 @@ export default function AgendaPage() {
       setManualForm({
         serviceId: "",
         staffId: "",
-        date: getTodayYMD(),
+        date: getTodayYMD(timeZone),
         time: "10:00",
         guestEmail: "",
         guestPhone: "",
@@ -810,7 +821,7 @@ export default function AgendaPage() {
           key: `staff-${staff.id}`,
           label: staff.customName,
           sublabel: `${dayAppointmentsFor(staff.id).length} turnos`,
-          avatar: staff.customName.slice(0, 2).toUpperCase(),
+          avatar: (staff.customName ?? "").slice(0, 2).toUpperCase(),
           appointments: dayAppointmentsFor(staff.id),
           isToday: selectedDate === todayYMD,
           showStaff: false,
@@ -904,7 +915,7 @@ export default function AgendaPage() {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            setSelectedDate(getTodayYMD());
+                            setSelectedDate(getTodayYMD(timeZone));
                             setPage(0);
                           }}
                         >
@@ -987,6 +998,7 @@ export default function AgendaPage() {
                       hours={hours}
                       gridHeight={gridHeight}
                       now={now}
+                      timeZone={timeZone}
                       onHover={handleAppointmentHover}
                       onLeave={clearAppointmentHover}
                     />

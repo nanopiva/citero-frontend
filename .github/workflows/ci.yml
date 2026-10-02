@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Lint, typecheck & audit
+    name: Lint, typecheck, build & audit
     runs-on: ubuntu-latest
 
     steps:
@@ -32,6 +32,12 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Build (producción)
+        run: npm run build
+        env:
+          # Valor de build; no se despliega desde CI (Vercel compila aparte).
+          NEXT_PUBLIC_API_URL: https://api.citero.app/api
 
       - name: Audit (high+)
         run: npm run audit

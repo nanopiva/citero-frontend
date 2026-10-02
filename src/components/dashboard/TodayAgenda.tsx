@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDots } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { useCurrentMinute } from "@/hooks/useCurrentMinute";
+import { wallClockToMs } from "@/lib/datetime";
 import { ROUTES } from "@/types";
 import type { AppointmentResponseDto } from "@/types";
 import { Panel } from "./Panel";
@@ -19,12 +20,14 @@ export function TodayAgenda({
   const minute = useCurrentMinute();
   const now = minute * 60_000;
   const sorted = [...appointments].sort(
-    (a, b) => +new Date(a.startTime) - +new Date(b.startTime),
+    (a, b) =>
+      wallClockToMs(a.startTime, a.businessTimezone) -
+      wallClockToMs(b.startTime, b.businessTimezone),
   );
   const nextId = sorted.find(
     (appointment) =>
       appointment.status === "CONFIRMED" &&
-      +new Date(appointment.startTime) >= now,
+      wallClockToMs(appointment.startTime, appointment.businessTimezone) >= now,
   )?.id;
 
   return (

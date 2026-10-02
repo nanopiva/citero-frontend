@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import api from "@/lib/api";
 import { parseApiError } from "@/lib/apiError";
+import { wallClockToMs } from "@/lib/datetime";
 import { useCurrentMinute } from "@/hooks/useCurrentMinute";
 import { useToast } from "@/components/ui/Toast";
 import { Navbar } from "@/components/layout/Navbar";
@@ -118,7 +119,6 @@ export default function MisTurnosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] =
@@ -132,10 +132,9 @@ export default function MisTurnosPage() {
       try {
         const res = await api.get<PageResponse<AppointmentResponseDto>>(
           "/appointments/my-appointments",
-          { params: { page, size: PAGE_SIZE } },
+          { params: { size: 1000 } },
         );
         setAppointments(res.data.content);
-        setTotalPages(res.data.totalPages);
       } catch (err) {
         setError(
           parseApiError(err, "No pudimos cargar tus turnos. Intentá de nuevo.")
@@ -147,7 +146,7 @@ export default function MisTurnosPage() {
     };
 
     fetchAppointments();
-  }, [page]);
+  }, []);
 
   const { futuros, pasados } = useMemo(() => {
     const nowMs = minute * 60_000;
@@ -157,7 +156,7 @@ export default function MisTurnosPage() {
     };
 
     appointments.forEach((apt) => {
-      const aptTime = new Date(apt.startTime).getTime();
+      const aptTime = wallClockToMs(apt.startTime, apt.businessTimezone);
       if (aptTime > nowMs && apt.status === AppointmentStatus.CONFIRMED) {
         lists.futuros.push(apt);
       } else {
@@ -167,11 +166,13 @@ export default function MisTurnosPage() {
 
     lists.futuros.sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+        wallClockToMs(a.startTime, a.businessTimezone) -
+        wallClockToMs(b.startTime, b.businessTimezone),
     );
     lists.pasados.sort(
       (a, b) =>
-        new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+        wallClockToMs(b.startTime, b.businessTimezone) -
+        wallClockToMs(a.startTime, a.businessTimezone),
     );
 
     return lists;
@@ -218,6 +219,11 @@ export default function MisTurnosPage() {
   const currentList = activeTab === "futuros" ? upcomingRest : pasados;
   const totalCurrent =
     activeTab === "futuros" ? futuros.length : pasados.length;
+  const totalPages = Math.max(1, Math.ceil(currentList.length / PAGE_SIZE));
+  const pagedList = currentList.slice(
+    page * PAGE_SIZE,
+    page * PAGE_SIZE + PAGE_SIZE,
+  );
 
   return (
     <div className="min-h-dvh bg-cloud">
@@ -267,7 +273,10 @@ export default function MisTurnosPage() {
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setPage(0);
+                    }}
                     className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-3.5 text-body-sm font-medium transition-colors ${
                       isActive
                         ? "text-ink-navy"
@@ -362,7 +371,7 @@ export default function MisTurnosPage() {
                             </span>
                           </div>
                           <ul className="divide-y divide-hairline">
-                            {currentList.map((apt) => {
+                            {pagedList.map((apt) => {
                               const { shortWeekday, numeric, time } =
                                 formatDateTime(apt.startTime);
                               const businessName =
@@ -371,7 +380,9 @@ export default function MisTurnosPage() {
                                 "Negocio no encontrado";
                               const meta = STATUS_META[apt.status];
                               const canCancel =
-                                apt.status === AppointmentStatus.CONFIRMED;
+                                apt.status === AppointmentStatus.CONFIRMED &&
+                                wallClockToMs(apt.startTime, apt.businessTimezone) >
+                                  minute * 60_000;
                               return (
                                 <li
                                   key={apt.id}

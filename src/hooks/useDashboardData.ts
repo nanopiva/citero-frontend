@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { parseApiError } from "@/lib/apiError";
+import { todayYMD } from "@/lib/datetime";
 import { WorkspaceRole, type WorkspaceResponseDto } from "@/types";
 import type {
   AppointmentResponseDto,
@@ -21,14 +22,6 @@ export interface DashboardData {
   loading: boolean;
   error: string | null;
   refresh: () => void;
-}
-
-function todayLocalDate(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-    2,
-    "0",
-  )}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 export function useDashboardData(
@@ -58,7 +51,7 @@ export function useDashboardData(
       setError(null);
 
       try {
-        const date = todayLocalDate();
+        const date = todayYMD(activeWorkspace.timezone);
         const businessId = activeWorkspace.businessId;
 
         if (activeWorkspace.role === WorkspaceRole.OWNER) {

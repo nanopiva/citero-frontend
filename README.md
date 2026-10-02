@@ -57,6 +57,8 @@ Las variables `NEXT_PUBLIC_*` quedan expuestas en el navegador y se aplican en e
 | `npm run build` | Build de producción |
 | `npm run start` | Corre el build de producción |
 | `npm run lint` | Linter |
+| `npm run typecheck` | Chequeo de tipos (tsc) |
+| `npm run audit` | Auditoría de dependencias (high+) |
 
 ## Autenticación
 

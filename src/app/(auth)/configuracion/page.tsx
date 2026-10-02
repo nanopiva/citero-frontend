@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -60,6 +66,8 @@ import {
 import { formatPeriodsLabel, weekdayKey } from "@/lib/schedule";
 
 const REPUTATION_PAGE_SIZE = 10;
+// Se trae todo el conjunto y se filtra/pagina en el cliente (búsqueda sobre todos los registros).
+const REPUTATION_FETCH_SIZE = 1000;
 
 interface BusinessConfigRequestForm {
   reservationMode: ReservationMode;
@@ -243,7 +251,6 @@ export default function ConfiguracionPage() {
 
   const [reputationSearch, setReputationSearch] = useState("");
   const [reputationPage, setReputationPage] = useState(0);
-  const [reputationTotalPages, setReputationTotalPages] = useState(1);
   const [reputationLoading, setReputationLoading] = useState(false);
   const [isProcessingReputation, setIsProcessingReputation] = useState<
     number | null
@@ -357,11 +364,10 @@ export default function ConfiguracionPage() {
       try {
         const res = await api.get<PageResponse<ClientReputationResponseDto>>(
           `/businesses/${activeWorkspace.businessId}/reputation`,
-          { params: { page: reputationPage, size: REPUTATION_PAGE_SIZE } },
+          { params: { page: 0, size: REPUTATION_FETCH_SIZE } },
         );
         if (!active) return;
         setReputations(res.data.content);
-        setReputationTotalPages(res.data.totalPages);
       } catch (err) {
         console.error("Error al cargar reputaciones:", err);
       } finally {
@@ -373,14 +379,20 @@ export default function ConfiguracionPage() {
     return () => {
       active = false;
     };
-  }, [activeWorkspace, reputationPage]);
+  }, [activeWorkspace]);
 
   const handleSaveGeneral = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!activeWorkspace) return;
     try {
       setIsSavingGeneral(true);
-      await api.put(`/businesses/${activeWorkspace.businessId}`, generalForm);
+      const res = await api.put<BusinessResponseDto>(
+        `/businesses/${activeWorkspace.businessId}`,
+        generalForm,
+      );
+      // Actualiza el negocio en memoria (nombre del modal de borrado, etc.).
+      setBusiness(res.data);
+      setGeneralForm((prev) => ({ ...prev, name: res.data.name }));
       toast.success(
         "Datos guardados",
         "Tu perfil público se actualizó correctamente.",
@@ -634,14 +646,46 @@ export default function ConfiguracionPage() {
   const handleSaveRules = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!activeWorkspace) return;
+
+    // Validación en el cliente (el backend también la aplica): 0–168 hs y 1–10 strikes.
+    const toleranceRaw = rulesForm.cancellationToleranceHours.trim();
+    const tolerance = Number(toleranceRaw);
+    if (
+      toleranceRaw === "" ||
+      !Number.isInteger(tolerance) ||
+      tolerance < 0 ||
+      tolerance > 168
+    ) {
+      toast.error(
+        "Tolerancia inválida",
+        "Ingresá un número de horas entre 0 y 168.",
+      );
+      return;
+    }
+    let maxStrikes = 1;
+    if (rulesForm.enablePenalties) {
+      const strikesRaw = rulesForm.maxStrikes.trim();
+      maxStrikes = Number(strikesRaw);
+      if (
+        strikesRaw === "" ||
+        !Number.isInteger(maxStrikes) ||
+        maxStrikes < 1 ||
+        maxStrikes > 10
+      ) {
+        toast.error(
+          "Máximo de strikes inválido",
+          "Ingresá un número entre 1 y 10.",
+        );
+        return;
+      }
+    }
+
     try {
       setIsSavingRules(true);
       await api.put(`/businesses/${activeWorkspace.businessId}/config`, {
         ...rulesForm,
-        cancellationToleranceHours: Number(
-          rulesForm.cancellationToleranceHours || 0,
-        ),
-        maxStrikes: Number(rulesForm.maxStrikes || 1),
+        cancellationToleranceHours: tolerance,
+        maxStrikes,
       });
       toast.success("Reglas guardadas", "La configuración de reservas cambió.");
     } catch (err) {
@@ -711,9 +755,34 @@ export default function ConfiguracionPage() {
     }
   };
 
-  const filteredReputations = reputations.filter((r) =>
-    r.clientEmail.toLowerCase().includes(reputationSearch.toLowerCase()),
+  const filteredReputations = useMemo(
+    () =>
+      reputations.filter((r) =>
+        r.clientEmail
+          .toLowerCase()
+          .includes(reputationSearch.trim().toLowerCase()),
+      ),
+    [reputations, reputationSearch],
   );
+  const reputationTotalPages = Math.max(
+    1,
+    Math.ceil(filteredReputations.length / REPUTATION_PAGE_SIZE),
+  );
+  const pagedReputations = useMemo(
+    () =>
+      filteredReputations.slice(
+        reputationPage * REPUTATION_PAGE_SIZE,
+        (reputationPage + 1) * REPUTATION_PAGE_SIZE,
+      ),
+    [filteredReputations, reputationPage],
+  );
+
+  useEffect(() => {
+    if (reputationPage > 0 && reputationPage >= reputationTotalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setReputationPage(reputationTotalPages - 1);
+    }
+  }, [reputationPage, reputationTotalPages]);
 
   return (
     <div className="min-h-dvh bg-cloud">
@@ -1552,9 +1621,10 @@ export default function ConfiguracionPage() {
                                 <Input
                                   placeholder="Buscar por email..."
                                   value={reputationSearch}
-                                  onChange={(e) =>
-                                    setReputationSearch(e.target.value)
-                                  }
+                                  onChange={(e) => {
+                                    setReputationSearch(e.target.value);
+                                    setReputationPage(0);
+                                  }}
                                   leftIcon={
                                     <MagnifyingGlass
                                       className="h-4 w-4"
@@ -1605,7 +1675,7 @@ export default function ConfiguracionPage() {
                                         </td>
                                       </tr>
                                     ) : (
-                                      filteredReputations.map((rep) => (
+                                      pagedReputations.map((rep) => (
                                         <tr
                                           key={rep.id}
                                           className="transition-colors hover:bg-pebble/60"

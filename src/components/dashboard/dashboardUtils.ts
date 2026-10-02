@@ -1,4 +1,5 @@
 import type { BadgeVariant } from "@/components/ui/Badge";
+import { wallClockParts } from "@/lib/datetime";
 import { DayOfWeek } from "@/types";
 import type { AppointmentResponseDto } from "@/types";
 
@@ -84,18 +85,19 @@ export function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function todayLong(): string {
+export function todayLong(timeZone?: string | null): string {
   return capitalize(
     new Date().toLocaleDateString("es-AR", {
       weekday: "long",
       day: "numeric",
       month: "long",
+      ...(timeZone ? { timeZone } : {}),
     }),
   );
 }
 
-export function daysElapsedThisMonth(): number {
-  return new Date().getDate();
+export function daysElapsedThisMonth(timeZone?: string | null): number {
+  return wallClockParts(new Date(), timeZone).day;
 }
 
 const WEEKDAYS: DayOfWeek[] = [
@@ -108,6 +110,8 @@ const WEEKDAYS: DayOfWeek[] = [
   DayOfWeek.SATURDAY,
 ];
 
-export function todayDayOfWeek(): DayOfWeek {
-  return WEEKDAYS[new Date().getDay()];
+export function todayDayOfWeek(timeZone?: string | null): DayOfWeek {
+  const p = wallClockParts(new Date(), timeZone);
+  const weekday = new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay();
+  return WEEKDAYS[weekday];
 }

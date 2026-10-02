@@ -44,7 +44,7 @@ export function OwnerDashboard({
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-caption font-semibold uppercase tracking-wider text-signal-blue">
-            {todayLong()}
+            {todayLong(workspace.timezone)}
           </p>
           <h1 className="mt-2 text-subheading font-bold leading-subheading text-ink-navy sm:text-heading-sm">
             Resumen de {workspace.businessName}
@@ -100,9 +100,13 @@ export function OwnerDashboard({
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <RevenuePanel stats={stats} />
+        <RevenuePanel stats={stats} timeZone={workspace.timezone} />
         <TopServices appointments={todayAppointments} />
-        <ConfigPanel config={config} schedules={schedules} />
+        <ConfigPanel
+          config={config}
+          schedules={schedules}
+          timeZone={workspace.timezone}
+        />
       </div>
     </div>
   );

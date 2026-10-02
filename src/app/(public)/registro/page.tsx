@@ -114,11 +114,23 @@ function RegisterContent() {
       if (parsed.status === 409 && Object.keys(nextFieldErrors).length === 0) {
         nextFieldErrors.email = parsed.message;
       }
+      // Si el error es de un campo que no está en el paso OTP, volvemos al formulario.
+      const OTP_STEP_FIELDS = new Set(["otpCode"]);
+      const hiddenFieldError = Object.keys(nextFieldErrors).some(
+        (field) => !OTP_STEP_FIELDS.has(field),
+      );
+      if (hiddenFieldError) {
+        setStep("form");
+      }
       setFieldErrors(nextFieldErrors);
       setFormError(
-        Object.keys(nextFieldErrors).length > 0 ? null : parsed.message,
+        Object.keys(nextFieldErrors).length > 0 && !hiddenFieldError
+          ? null
+          : parsed.message,
       );
-      focusFirstError(nextFieldErrors, FIELD_ORDER);
+      if (!hiddenFieldError) {
+        focusFirstError(nextFieldErrors, FIELD_ORDER);
+      }
     } finally {
       setIsLoading(false);
     }

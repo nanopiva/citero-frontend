@@ -67,6 +67,7 @@ export interface WorkspaceResponseDto {
   businessName: string;
   slug: string;
   logoUrl?: string;
+  timezone?: string;
   role: WorkspaceRole;
 }
 
@@ -120,6 +121,7 @@ export interface BusinessResponseDto {
   tiktokUrl?: string;
   twitterUrl?: string;
   whatsappNumber?: string;
+  timezone?: string;
 }
 
 export interface BusinessUpdateDto {
@@ -282,6 +284,7 @@ export interface AppointmentResponseDto {
   id: number;
   businessId: number;
   businessName?: string;
+  businessTimezone?: string;
   client: UserResponseDto;
   staff: StaffResponseDto;
   service: ServiceResponseDto;

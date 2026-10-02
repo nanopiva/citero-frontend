@@ -3,10 +3,16 @@ import type { DashboardStatsDto } from "@/types";
 import { Panel } from "./Panel";
 import { daysElapsedThisMonth, formatCurrency } from "./dashboardUtils";
 
-export function RevenuePanel({ stats }: { stats: DashboardStatsDto }) {
+export function RevenuePanel({
+  stats,
+  timeZone,
+}: {
+  stats: DashboardStatsDto;
+  timeZone?: string | null;
+}) {
   const today = stats.estimatedRevenueToday ?? 0;
   const month = stats.estimatedRevenueThisMonth ?? 0;
-  const elapsed = Math.max(1, daysElapsedThisMonth());
+  const elapsed = Math.max(1, daysElapsedThisMonth(timeZone));
   const average = month / elapsed;
   const ratio = average > 0 ? Math.round((today / average) * 100) : 0;
 

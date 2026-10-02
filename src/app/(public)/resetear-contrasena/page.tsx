@@ -68,6 +68,12 @@ function ResetContent() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
+  // Limpia el email guardado al salir de la pantalla de éxito.
+  useEffect(() => {
+    if (step !== "success") return;
+    return () => clearResetEmail();
+  }, [step]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email) return;
@@ -98,7 +104,6 @@ function ResetContent() {
         otpCode,
         newPassword,
       });
-      clearResetEmail();
       setStep("success");
     } catch (err) {
       const parsed = parseApiError(

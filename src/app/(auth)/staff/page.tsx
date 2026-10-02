@@ -489,7 +489,7 @@ export default function StaffPage() {
                           >
                             <div className="flex min-w-0 items-start gap-3 sm:flex-1">
                             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pebble text-body-sm font-semibold text-ink-navy">
-                              {staff.customName.slice(0, 2).toUpperCase()}
+                              {(staff.customName ?? "").slice(0, 2).toUpperCase()}
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">

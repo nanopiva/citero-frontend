@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import api from "@/lib/api";
+import { todayYMD, wallClockParts } from "@/lib/datetime";
 import {
   ReservationMode,
   type AvailabilityResponseDto,
@@ -98,8 +99,9 @@ export function BookingWizard({
   const [isFinishing, setIsFinishing] = useState(false);
 
   const [currentMonth, setCurrentMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    // Mes actual en la zona horaria del negocio.
+    const parts = wallClockParts(new Date(), business.timezone);
+    return new Date(parts.year, parts.month - 1, 1);
   });
 
   const timers = useRef<number[]>([]);
@@ -179,26 +181,25 @@ export function BookingWizard({
     const firstDayIndex = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // "Hoy" en la zona horaria del negocio. Los YYYY-MM-DD comparan lexicográficamente.
+    const todayStr = todayYMD(business.timezone);
 
     const days: ({ day: number; dateStr: string; disabled: boolean } | null)[] =
       [];
     for (let i = 0; i < firstDayIndex; i++) days.push(null);
     for (let i = 1; i <= daysInMonth; i++) {
-      const dateObj = new Date(year, month, i);
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
         i,
       ).padStart(2, "0")}`;
-      days.push({ day: i, dateStr, disabled: dateObj < today });
+      days.push({ day: i, dateStr, disabled: dateStr < todayStr });
     }
     return days;
-  }, [currentMonth]);
+  }, [currentMonth, business.timezone]);
 
-  const now = new Date();
+  const nowParts = wallClockParts(new Date(), business.timezone);
   const canGoPrev = !(
-    currentMonth.getFullYear() === now.getFullYear() &&
-    currentMonth.getMonth() === now.getMonth()
+    currentMonth.getFullYear() === nowParts.year &&
+    currentMonth.getMonth() === nowParts.month - 1
   );
 
   const morningSlots = availableSlots.filter(
@@ -510,7 +511,7 @@ export function BookingWizard({
                                 : "bg-pebble text-ink-navy"
                             }`}
                           >
-                            {staff.customName.slice(0, 2).toUpperCase()}
+                            {(staff.customName ?? "").slice(0, 2).toUpperCase()}
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-body font-semibold text-ink-navy">

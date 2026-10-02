@@ -41,7 +41,7 @@ interface AppointmentPayload {
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const RESEND_COOLDOWN_SECONDS = 30;
-const FIELD_ORDER = ["name", "email", "phone", "otpCode"];
+const FIELD_ORDER = ["email", "phone", "otpCode"];
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split("-").map(Number);
@@ -110,7 +110,6 @@ function ConfirmacionContent() {
   const [cooldown, setCooldown] = useState(0);
 
   const [guestForm, setGuestForm] = useState({
-    name: "",
     email: "",
     phone: "",
   });
@@ -240,7 +239,6 @@ function ConfirmacionContent() {
     }
 
     const errors: FieldErrors = {};
-    if (!guestForm.name.trim()) errors.name = "Ingresá tu nombre.";
     const emailError = validateEmail(guestForm.email);
     if (emailError) errors.email = emailError;
 
@@ -575,25 +573,6 @@ function ConfirmacionContent() {
                               un código a tu email antes de confirmar.
                             </Alert>
                           )}
-
-                          <TextField
-                            id="name"
-                            name="name"
-                            label="Nombre completo"
-                            autoComplete="name"
-                            placeholder="Tu nombre"
-                            value={guestForm.name}
-                            onChange={(e) => {
-                              setGuestForm((prev) => ({
-                                ...prev,
-                                name: e.target.value,
-                              }));
-                              clearFieldError(setFieldErrors, "name");
-                            }}
-                            error={fieldErrors.name}
-                            disabled={isSubmitting || isSendingOtp}
-                            required
-                          />
 
                           <TextField
                             id="email"
