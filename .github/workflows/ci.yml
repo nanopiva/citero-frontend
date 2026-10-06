@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Lint, typecheck, build & audit
+    runs-on: ubuntu-latest
+
+    steps:
+      # Acciones fijadas por SHA (inmutable) con la versión legible como comentario.
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install (lockfile reproducido)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (producción)
+        run: npm run build
+        env:
+          # Valor de build; no se despliega desde CI (Vercel compila aparte).
+          NEXT_PUBLIC_API_URL: https://api.citero.app/api
+
+      - name: Audit (high+)
+        run: npm run audit
+
+      - name: Generate SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx --package-lock-only > sbom.cdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-sbom
+          path: sbom.cdx.json
+          if-no-files-found: error
+
+      - name: Scan dependencies & config (Trivy)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          # Bloquea el build ante HIGH/CRITICAL con fix disponible (línea base limpia).
+          exit-code: "1"
+          format: table
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Review changed dependencies
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
