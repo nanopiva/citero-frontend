@@ -788,13 +788,6 @@ export default function ConfiguracionPage() {
   const anyDirty =
     dirtyGeneral || dirtyRules || dirtySchedules || dirtyException;
 
-  const tabSaves: Record<string, () => Promise<boolean>> = {
-    general: saveGeneral,
-    horarios: saveSchedules,
-    excepciones: saveException,
-    reglas: saveRules,
-  };
-
   const discardGeneral = () => {
     if (!generalBaseline) return;
     // Logo/portada se guardan al subirse: se preservan al revertir el resto.
@@ -814,11 +807,38 @@ export default function ConfiguracionPage() {
     setExceptionError(null);
     setNewException(emptyException());
   };
-  const tabDiscards: Record<string, () => void> = {
-    general: discardGeneral,
-    horarios: discardSchedules,
-    excepciones: discardException,
-    reglas: discardRules,
+  // Dispatch explícito por pestaña: no se indexan funciones con un valor que
+  // puede venir del query param `?tab=`, así no hay invocación dinámica.
+  const saveTab = (tab: string): Promise<boolean> => {
+    switch (tab) {
+      case "general":
+        return saveGeneral();
+      case "horarios":
+        return saveSchedules();
+      case "excepciones":
+        return saveException();
+      case "reglas":
+        return saveRules();
+      default:
+        return Promise.resolve(false);
+    }
+  };
+
+  const discardTab = (tab: string): void => {
+    switch (tab) {
+      case "general":
+        discardGeneral();
+        break;
+      case "horarios":
+        discardSchedules();
+        break;
+      case "excepciones":
+        discardException();
+        break;
+      case "reglas":
+        discardRules();
+        break;
+    }
   };
 
   const requestTabChange = (nextTab: string) => {
@@ -834,10 +854,7 @@ export default function ConfiguracionPage() {
     if (!pendingTab) return;
     const target = pendingTab;
     setIsResolvingTab(true);
-    const save = Object.prototype.hasOwnProperty.call(tabSaves, activeTab)
-      ? tabSaves[activeTab]
-      : undefined;
-    const ok = typeof save === "function" ? await save() : false;
+    const ok = await saveTab(activeTab);
     setIsResolvingTab(false);
     // Si no se pudo guardar, se queda en la pestaña para que el usuario corrija.
     if (ok) setActiveTab(target);
@@ -847,10 +864,7 @@ export default function ConfiguracionPage() {
   const handleDiscardAndLeaveTab = () => {
     if (!pendingTab) return;
     const target = pendingTab;
-    const discard = Object.prototype.hasOwnProperty.call(tabDiscards, activeTab)
-      ? tabDiscards[activeTab]
-      : undefined;
-    if (typeof discard === "function") discard();
+    discardTab(activeTab);
     setPendingTab(null);
     setActiveTab(target);
   };
