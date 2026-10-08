@@ -7,6 +7,7 @@ import {
   type ChangeEvent,
   type DragEvent,
 } from "react";
+import { toSafeImageSrc } from "@/lib/image";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 // Límite del archivo ORIGINAL: se comprime antes de subir, y el backend valida 2 MB
@@ -42,6 +43,7 @@ export function ImageUploader({
   // Durante la subida se muestra el archivo elegido; terminada (éxito o error) se
   // muestra la URL canónica, así un fallo no deja una imagen "fantasma".
   const displayUrl = loading ? (preview ?? value) : value;
+  const safeDisplayUrl = toSafeImageSrc(displayUrl);
 
   useEffect(
     () => () => {
@@ -106,11 +108,11 @@ export function ImageUploader({
             : "border-hairline bg-pebble hover:border-signal-blue",
         ].join(" ")}
       >
-        {displayUrl ? (
+        {safeDisplayUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={displayUrl}
+              src={safeDisplayUrl}
               alt={label ?? "Imagen"}
               className="h-full w-full object-cover"
             />
