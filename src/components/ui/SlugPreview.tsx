@@ -17,7 +17,7 @@ export function SlugPreview({
 
   return (
     <div
-      className={`flex h-11 items-center gap-2 rounded-lg border border-hairline bg-cloud px-4 text-body-sm ${
+      className={`flex h-11 min-w-0 items-center gap-2 rounded-lg border border-hairline bg-cloud px-4 text-body-sm ${
         isValid ? "text-slate-gray" : "text-danger"
       }`}
     >
@@ -32,9 +32,11 @@ export function SlugPreview({
       >
         <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
       </svg>
-      <span className="shrink-0 text-slate-gray">{baseUrl}</span>
+      <span className="hidden shrink-0 text-slate-gray min-[400px]:inline">
+        {baseUrl}
+      </span>
       <span
-        className={`truncate ${
+        className={`min-w-0 truncate ${
           isEmpty ? "italic text-slate-gray" : "font-medium text-ink-navy"
         }`}
       >

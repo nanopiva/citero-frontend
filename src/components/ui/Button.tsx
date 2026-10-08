@@ -25,9 +25,11 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-body-sm",
-  md: "h-11 px-5 text-body",
-  lg: "h-12 px-6 text-button",
+  // Mobile: min-height + padding para permitir wrap de etiquetas largas.
+  // Desde sm: se restaura la altura/padding originales del desktop.
+  sm: "min-h-11 px-4 py-2 text-body-sm sm:h-9 sm:min-h-0 sm:px-4 sm:py-0",
+  md: "min-h-11 px-4 py-2.5 text-body sm:h-11 sm:min-h-0 sm:px-5 sm:py-0",
+  lg: "min-h-12 px-5 py-3 text-body sm:h-12 sm:min-h-0 sm:px-6 sm:py-0 sm:text-button",
 };
 
 function buttonClasses({
@@ -42,7 +44,7 @@ function buttonClasses({
   className?: string;
 } = {}) {
   return [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold leading-none transition-all",
+    "inline-flex items-center justify-center gap-2 text-center rounded-lg font-semibold leading-tight transition-all",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-blue/30",
     "disabled:pointer-events-none disabled:opacity-50",
     variantStyles[variant],

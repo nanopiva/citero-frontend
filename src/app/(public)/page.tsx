@@ -199,7 +199,7 @@ export default function LandingPage() {
           />
 
           <div className="relative mx-auto max-w-page px-6 pb-16 pt-24 md:pb-24 md:pt-28">
-            <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
               <div>
                 <h1 className="text-balance text-heading-sm font-bold leading-heading-sm md:text-heading md:leading-heading">
                   Turnos y reservas para tu negocio
@@ -273,7 +273,7 @@ export default function LandingPage() {
               <Stagger
                 as="ol"
                 stagger={0.1}
-                className="grid gap-10 sm:grid-cols-3"
+                className="grid grid-cols-1 gap-10 sm:grid-cols-3"
               >
                 {STEPS.map((step, index) => (
                   <StaggerItem
@@ -302,7 +302,7 @@ export default function LandingPage() {
           id="plataforma"
           className="scroll-mt-24 border-t border-hairline"
         >
-          <div className="mx-auto grid max-w-page items-center gap-16 px-6 py-20 md:py-24 lg:grid-cols-2">
+          <div className="mx-auto grid grid-cols-1 max-w-page items-center gap-16 px-6 py-20 md:py-24 lg:grid-cols-2">
             <Reveal>
               <h2 className="text-heading-sm font-bold leading-heading-sm md:text-heading md:leading-heading">
                 Cada negocio decide cómo recibe reservas
@@ -336,7 +336,7 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div>
                       <p className="text-caption font-medium text-slate-gray">
                         ¿Quién puede reservar?
@@ -371,7 +371,7 @@ export default function LandingPage() {
           id="beneficios"
           className="scroll-mt-24 border-t border-hairline"
         >
-          <div className="mx-auto grid max-w-page items-center gap-16 px-6 py-20 md:py-24 lg:grid-cols-2">
+          <div className="mx-auto grid grid-cols-1 max-w-page items-center gap-16 px-6 py-20 md:py-24 lg:grid-cols-2">
             <Reveal className="order-2 lg:order-1">
               <HoverLift className="relative">
                 <div
@@ -568,7 +568,7 @@ export default function LandingPage() {
             </Reveal>
             <Stagger
               as="dl"
-              className="mx-auto mt-14 grid max-w-4xl gap-8 border-t border-hairline pt-8 md:grid-cols-3 md:gap-0 md:divide-x md:divide-hairline"
+              className="mx-auto mt-14 grid grid-cols-1 max-w-4xl gap-8 border-t border-hairline pt-8 md:grid-cols-3 md:gap-0 md:divide-x md:divide-hairline"
             >
               {TEAM_FEATURES.map((feature) => (
                 <StaggerItem

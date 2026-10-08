@@ -98,7 +98,7 @@ function SidebarItem({
       href={item.href}
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-body-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-signal-blue/30 ${
+      className={`flex items-center gap-3 rounded-lg px-3 py-3 text-body-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-signal-blue/30 ${
         isActive
           ? "bg-accent-soft text-signal-blue"
           : "text-slate-gray hover:bg-pebble hover:text-ink-navy"
@@ -302,7 +302,7 @@ export function Sidebar() {
               role="dialog"
               aria-label="Menú de navegación"
               tabIndex={-1}
-              className="absolute left-0 top-0 flex h-full w-72 flex-col bg-paper shadow-sm-2 outline-none"
+              className="absolute left-0 top-0 flex h-full w-[85vw] max-w-xs flex-col bg-paper shadow-sm-2 outline-none"
               initial={reduce ? false : { x: "-100%" }}
               animate={{ x: 0 }}
               exit={reduce ? undefined : { x: "-100%" }}
@@ -316,7 +316,7 @@ export function Sidebar() {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Cerrar menú"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
                 >
                   <XIcon className="h-5 w-5" weight="bold" />
                 </button>

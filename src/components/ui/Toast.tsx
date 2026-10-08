@@ -117,7 +117,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   type="button"
                   onClick={() => remove(toast.id)}
                   aria-label="Cerrar notificación"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
+                  className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-gray transition-colors before:absolute before:-inset-2 before:content-[''] hover:bg-pebble hover:text-ink-navy"
                 >
                   <XIcon className="h-3.5 w-3.5" weight="bold" />
                 </button>

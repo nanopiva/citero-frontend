@@ -29,7 +29,7 @@ function SocialLink({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-hairline text-slate-gray transition-colors hover:border-signal-blue hover:text-signal-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-blue/30"
+      className="flex h-11 w-11 items-center justify-center rounded-lg border border-hairline text-slate-gray transition-colors hover:border-signal-blue hover:text-signal-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-blue/30"
     >
       {children}
     </a>

@@ -87,12 +87,12 @@ export default function BusinessPage() {
         <div className="mx-auto w-full max-w-page px-6">
           <div className="flex gap-5 pt-3">
             <div className="-mt-14 h-24 w-24 shrink-0 animate-pulse rounded-2xl bg-pebble sm:-mt-16 sm:h-28 sm:w-28" />
-            <div className="space-y-3 pb-3 pt-1">
-              <div className="h-8 w-56 animate-pulse rounded-lg bg-pebble" />
-              <div className="h-4 w-72 animate-pulse rounded bg-pebble" />
+            <div className="min-w-0 space-y-3 pb-3 pt-1">
+              <div className="h-8 w-full max-w-56 animate-pulse rounded-lg bg-pebble" />
+              <div className="h-4 w-full max-w-72 animate-pulse rounded bg-pebble" />
             </div>
           </div>
-          <div className="grid gap-8 py-10 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-8 py-10 lg:grid-cols-[340px_minmax(0,1fr)]">
             <div className="order-2 space-y-6 lg:order-1">
               <div className="h-56 animate-pulse rounded-2xl bg-pebble" />
               <div className="h-56 animate-pulse rounded-2xl bg-pebble" />
@@ -152,7 +152,7 @@ export default function BusinessPage() {
         <BusinessHeader business={business} />
 
         <div className="mx-auto w-full max-w-page px-6">
-          <div className="grid gap-8 py-10 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-8 py-10 lg:grid-cols-[340px_minmax(0,1fr)]">
             <aside className="order-2 lg:order-1">
               <BusinessInfo business={business} />
             </aside>

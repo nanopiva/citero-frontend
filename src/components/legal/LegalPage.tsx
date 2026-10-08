@@ -43,7 +43,7 @@ export function LegalPage({
               <p className="text-caption font-semibold uppercase tracking-wider text-slate-gray">
                 Contenido
               </p>
-              <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+              <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
                 {toc.map((item) => (
                   <li key={item}>
                     <a

@@ -83,7 +83,7 @@ export function StaffDashboard({
         />
       </StatsStrip>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <TodayAgenda
           appointments={staffTodayAppointments}
           emptyText="No tenés turnos programados para hoy."

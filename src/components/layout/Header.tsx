@@ -66,7 +66,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)");
+    const media = window.matchMedia("(min-width: 1024px)");
     const handleChange = () => {
       if (media.matches) setIsMenuOpen(false);
     };
@@ -77,7 +77,7 @@ export default function Header() {
   return (
     <>
       {/* Mobile: barra fija con menú */}
-      <div className="fixed inset-x-0 top-0 z-50 md:hidden">
+      <div className="fixed inset-x-0 top-0 z-50 lg:hidden">
         <header
           className={`flex h-16 items-center justify-between border-b px-4 transition-colors duration-300 ${
             isScrolled || isMenuOpen
@@ -92,7 +92,7 @@ export default function Header() {
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
             aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-ink-navy transition-colors hover:bg-pebble"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-navy transition-colors hover:bg-pebble"
           >
             {isMenuOpen ? (
               <XIcon className="h-5 w-5" weight="bold" />
@@ -141,7 +141,7 @@ export default function Header() {
       </div>
 
       {/* Desktop: píldora flotante */}
-      <div className="pointer-events-none fixed left-0 top-0 z-50 hidden w-full justify-center md:flex">
+      <div className="pointer-events-none fixed left-0 top-0 z-50 hidden w-full justify-center lg:flex">
         <header
           className={`pointer-events-auto flex items-center justify-between rounded-2xl border transition-all duration-500 ease-in-out ${
             isScrolled
@@ -151,7 +151,7 @@ export default function Header() {
         >
           <LogoMark />
 
-          <nav className="hidden items-center gap-1 md:flex lg:gap-2">
+          <nav className="hidden items-center gap-1 lg:flex lg:gap-2">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -167,7 +167,7 @@ export default function Header() {
             <ButtonLink
               href="/login"
               variant="dark"
-              className="hidden md:inline-flex"
+              className="hidden lg:inline-flex"
             >
               Iniciar sesión
             </ButtonLink>

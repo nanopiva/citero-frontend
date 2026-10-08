@@ -286,7 +286,7 @@ function AppointmentBlock({
                 e.stopPropagation();
                 onMenu?.(apt, e.currentTarget.getBoundingClientRect());
               }}
-              className="-mr-0.5 -mt-0.5 shrink-0 rounded-md p-0.5 opacity-70 transition-opacity hover:bg-ink-navy/10 hover:opacity-100 focus-visible:opacity-100"
+              className="-mr-1 -mt-1 shrink-0 rounded-md p-1 opacity-70 transition-opacity hover:bg-ink-navy/10 hover:opacity-100 focus-visible:opacity-100"
             >
               <DotsThreeVerticalIcon className="h-4 w-4" weight="bold" />
             </button>
@@ -444,7 +444,7 @@ function AgendaGrid({
   const template = `4rem repeat(${columns.length}, minmax(${minColumn}, 1fr))`;
 
   return (
-    <div className="max-h-[70dvh] min-h-[480px] overflow-auto">
+    <div className="max-h-[70dvh] min-h-[320px] overflow-auto sm:min-h-[480px]">
       <div
         className="grid"
         style={{ gridTemplateColumns: template, minWidth: "100%" }}
@@ -1057,7 +1057,7 @@ export default function AgendaPage() {
               )}
 
               {loading && appointments.length === 0 ? (
-                <div className="flex min-h-[480px] items-center justify-center rounded-2xl border border-hairline bg-paper shadow-sm">
+                <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-hairline bg-paper shadow-sm sm:min-h-[480px]">
                   <Spinner />
                 </div>
               ) : (
@@ -1068,7 +1068,7 @@ export default function AgendaPage() {
                         <button
                           onClick={handlePrevDate}
                           aria-label="Anterior"
-                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-hairline bg-paper text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
+                          className="flex h-11 w-11 items-center justify-center rounded-lg border border-hairline bg-paper text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-10 sm:w-10"
                         >
                           <CaretLeftIcon className="h-4 w-4" weight="bold" />
                         </button>
@@ -1085,7 +1085,7 @@ export default function AgendaPage() {
                             />
                           </div>
                         ) : (
-                          <div className="flex h-11 items-center rounded-lg border border-hairline bg-pebble px-4 text-body-sm text-ink-navy">
+                          <div className="flex h-11 min-w-0 items-center truncate rounded-lg border border-hairline bg-pebble px-4 text-body-sm text-ink-navy">
                             {weekRangeLabel}
                           </div>
                         )}
@@ -1093,7 +1093,7 @@ export default function AgendaPage() {
                         <button
                           onClick={handleNextDate}
                           aria-label="Siguiente"
-                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-hairline bg-paper text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
+                          className="flex h-11 w-11 items-center justify-center rounded-lg border border-hairline bg-paper text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-10 sm:w-10"
                         >
                           <CaretRightIcon className="h-4 w-4" weight="bold" />
                         </button>
@@ -1144,7 +1144,7 @@ export default function AgendaPage() {
                       <div
                         role="tablist"
                         aria-label="Vista de agenda"
-                        className="flex h-11 items-center rounded-lg border border-hairline bg-pebble p-1"
+                        className="flex h-11 items-center rounded-lg border border-hairline bg-pebble p-0.5 sm:p-1"
                       >
                       <button
                         type="button"
@@ -1249,7 +1249,7 @@ export default function AgendaPage() {
         title="Nuevo turno manual"
       >
         <form className="space-y-5" onSubmit={handleCreateManual}>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <SelectField
               id="manual-service"
               label="Servicio"
@@ -1288,7 +1288,7 @@ export default function AgendaPage() {
             </SelectField>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <TextField
               id="manual-date"
               label="Fecha"
@@ -1311,7 +1311,7 @@ export default function AgendaPage() {
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <TextField
               id="manual-email"
               label="Email del cliente"
@@ -1338,10 +1338,11 @@ export default function AgendaPage() {
 
           {manualError && <Alert variant="error">{manualError}</Alert>}
 
-          <div className="flex justify-end gap-3 border-t border-hairline pt-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-hairline pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setIsManualModalOpen(false);
                 setManualError(null);
@@ -1350,7 +1351,7 @@ export default function AgendaPage() {
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={isSaving}>
+            <Button type="submit" className="w-full sm:w-auto" loading={isSaving}>
               Agendar turno
             </Button>
           </div>

@@ -138,9 +138,11 @@ export function MfaSettings() {
             Se muestran una única vez. Cada uno sirve para iniciar sesión si
             perdés el dispositivo.
           </Alert>
-          <ul className="grid grid-cols-2 gap-2 rounded-xl bg-cloud p-4 font-mono text-body-sm text-ink-navy">
+          <ul className="grid grid-cols-1 gap-2 rounded-xl bg-cloud p-4 font-mono text-body-sm text-ink-navy sm:grid-cols-2">
             {recoveryCodes.map((rc) => (
-              <li key={rc}>{rc}</li>
+              <li key={rc} className="break-all">
+                {rc}
+              </li>
             ))}
           </ul>
           <div className="flex justify-end">
@@ -171,10 +173,11 @@ export function MfaSettings() {
             required
           />
           {error && <Alert variant="error">{error}</Alert>}
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setSetup(null);
                 setError(null);
@@ -183,7 +186,7 @@ export function MfaSettings() {
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={busy}>
+            <Button type="submit" className="w-full sm:w-auto" loading={busy}>
               Activar
             </Button>
           </div>
@@ -219,10 +222,11 @@ export function MfaSettings() {
                 required
               />
               {error && <Alert variant="error">{error}</Alert>}
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
                   variant="ghost"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     setDisableOpen(false);
                     setError(null);
@@ -231,7 +235,12 @@ export function MfaSettings() {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" variant="destructive" loading={busy}>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                  loading={busy}
+                >
                   Desactivar
                 </Button>
               </div>

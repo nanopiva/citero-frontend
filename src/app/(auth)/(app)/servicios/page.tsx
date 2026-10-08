@@ -316,7 +316,7 @@ export default function ServicesPage() {
                                 type="button"
                                 onClick={() => openEditModal(srv)}
                                 aria-label={`Editar ${srv.name}`}
-                                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-9 sm:w-9"
+                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-9 sm:w-9"
                               >
                                 <PencilSimpleIcon
                                   className="h-4 w-4"
@@ -327,7 +327,7 @@ export default function ServicesPage() {
                                 type="button"
                                 onClick={() => openDeleteModal(srv)}
                                 aria-label={`Eliminar ${srv.name}`}
-                                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
+                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
                               >
                                 <TrashIcon className="h-4 w-4" weight="regular" />
                               </button>
@@ -361,7 +361,7 @@ export default function ServicesPage() {
             required
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <TextField
                 id="durationMinutes"
@@ -428,16 +428,17 @@ export default function ServicesPage() {
 
           {formError && <Alert variant="error">{formError}</Alert>}
 
-          <div className="flex justify-end gap-3 border-t border-hairline pt-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-hairline pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={closeModal}
               disabled={isSaving}
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={isSaving}>
+            <Button type="submit" className="w-full sm:w-auto" loading={isSaving}>
               {editingService ? "Guardar cambios" : "Guardar servicio"}
             </Button>
           </div>

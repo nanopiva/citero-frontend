@@ -212,8 +212,8 @@ function LocationPickerInner({
         />
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-caption text-slate-gray">
+      <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <span className="min-w-0 break-all text-caption text-slate-gray">
           {hasCoords
             ? `Coordenadas: ${value.latitude?.toFixed(5)}, ${value.longitude?.toFixed(5)}`
             : "Marcá el punto en el mapa o elegí una sugerencia."}
@@ -222,7 +222,7 @@ function LocationPickerInner({
           <button
             type="button"
             onClick={clear}
-            className="text-caption font-medium text-signal-blue hover:underline"
+            className="shrink-0 text-caption font-medium text-signal-blue hover:underline"
           >
             Quitar ubicación
           </button>

@@ -73,7 +73,7 @@ export function OwnerDashboard({
         scheduleConfigured={isScheduleConfigured(schedules, config)}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <TodayAgenda appointments={todayAppointments} />
         <div className="space-y-6">
           <NextAppointment appointments={todayAppointments} />
@@ -111,7 +111,7 @@ export function OwnerDashboard({
 
       <BlockedClientsBanner count={stats.blockedClientsCount ?? 0} />
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RevenuePanel stats={stats} timeZone={workspace.timezone} />
         <TopServices appointments={todayAppointments} />
         <ConfigPanel

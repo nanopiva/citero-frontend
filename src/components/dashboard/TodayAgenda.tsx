@@ -66,7 +66,7 @@ export function TodayAgenda({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-body-sm font-semibold text-ink-navy">
+                    <p className="min-w-0 truncate text-body-sm font-semibold text-ink-navy">
                       {clientDisplayName(appointment.client)}
                     </p>
                     {isNext && (
@@ -75,7 +75,7 @@ export function TodayAgenda({
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-0.5 truncate text-caption text-slate-gray">
+                  <p className="mt-0.5 line-clamp-2 text-caption text-slate-gray">
                     {appointment.service.name} · {appointment.staff.customName}
                   </p>
                 </div>

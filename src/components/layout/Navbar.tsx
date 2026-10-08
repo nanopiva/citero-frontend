@@ -33,7 +33,7 @@ export function Navbar() {
               type="button"
               onClick={openMobileMenu}
               aria-label="Abrir menú"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-ink-navy transition-colors hover:bg-pebble focus-visible:ring-2 focus-visible:ring-signal-blue/30 lg:hidden"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-navy transition-colors hover:bg-pebble focus-visible:ring-2 focus-visible:ring-signal-blue/30 lg:hidden"
             >
               <ListIcon className="h-5 w-5" weight="bold" />
             </button>
@@ -80,7 +80,7 @@ export function Navbar() {
             <UserMenu />
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden items-center gap-6 md:flex">
               <Link
                 href="/#como-funciona"
@@ -95,7 +95,12 @@ export function Navbar() {
                 Beneficios
               </Link>
             </div>
-            <ButtonLink href={ROUTES.public.login} variant="outline" size="sm">
+            <ButtonLink
+              href={ROUTES.public.login}
+              variant="outline"
+              size="sm"
+              className="hidden min-[400px]:inline-flex"
+            >
               Iniciar sesión
             </ButtonLink>
             <ButtonLink href={ROUTES.public.register} size="sm">

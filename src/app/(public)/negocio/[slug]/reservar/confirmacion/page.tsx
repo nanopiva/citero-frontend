@@ -68,7 +68,7 @@ function ConfirmationSkeleton() {
       <Navbar />
       <main className="mx-auto w-full max-w-page px-6 py-10">
         <div className="h-4 w-16 animate-pulse rounded bg-pebble" />
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <div className="space-y-6">
             <div className="h-9 w-64 animate-pulse rounded-lg bg-pebble" />
             <div className="h-64 animate-pulse rounded-2xl bg-pebble" />
@@ -477,7 +477,7 @@ function ConfirmacionContent() {
           Volver
         </button>
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <section className="space-y-6">
             <nav
               aria-label="Pasos de la reserva"

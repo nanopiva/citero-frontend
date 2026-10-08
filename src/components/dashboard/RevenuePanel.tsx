@@ -26,13 +26,13 @@ export function RevenuePanel({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-caption text-slate-gray">Hoy</p>
-          <p className="mt-1 text-subheading font-bold leading-none text-ink-navy">
+          <p className="mt-1 break-words text-body-lg font-bold leading-none text-ink-navy sm:text-subheading">
             {formatCurrency(today)}
           </p>
         </div>
         <div>
           <p className="text-caption text-slate-gray">Este mes</p>
-          <p className="mt-1 text-subheading font-bold leading-none text-ink-navy">
+          <p className="mt-1 break-words text-body-lg font-bold leading-none text-ink-navy sm:text-subheading">
             {formatCurrency(month)}
           </p>
         </div>

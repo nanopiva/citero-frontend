@@ -9,7 +9,7 @@ export function Card({ padded = true, className = "", ...props }: CardProps) {
     <div
       className={[
         "rounded-3xl border border-hairline bg-paper shadow-sm",
-        padded ? "p-6" : "",
+        padded ? "p-4 sm:p-6" : "",
         className,
       ]
         .filter(Boolean)

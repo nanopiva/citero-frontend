@@ -27,7 +27,7 @@ export function AuthCard({
       animate={{ opacity: 1, y: 0 }}
       exit={reduce ? undefined : { opacity: 0, y: -12 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-3xl border border-hairline bg-paper p-8 shadow-sm-2 sm:p-10"
+      className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm-2 sm:p-10"
     >
       <div className="text-center">
         {icon ? (

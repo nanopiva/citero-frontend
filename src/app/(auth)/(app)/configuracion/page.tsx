@@ -179,7 +179,7 @@ function ToggleRow({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-hairline bg-paper p-4 transition-colors hover:border-signal-blue/30 hover:bg-cloud">
+    <div className="flex flex-col gap-3 rounded-xl border border-hairline bg-paper p-4 transition-colors hover:border-signal-blue/30 hover:bg-cloud sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pebble text-ink-navy">
           {icon}
@@ -1063,7 +1063,7 @@ export default function ConfiguracionPage() {
                                 description="Datos visibles en tu perfil público."
                               />
 
-                              <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <TextField
                                   id="business-name"
                                   label="Nombre del negocio"
@@ -1107,7 +1107,7 @@ export default function ConfiguracionPage() {
                                 <Alert variant="error">{imageError}</Alert>
                               )}
 
-                              <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <ImageUploader
                                   variant="logo"
                                   value={generalForm.logoUrl || null}
@@ -1156,7 +1156,7 @@ export default function ConfiguracionPage() {
                                 }
                               />
 
-                              <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <TextField
                                   id="business-phone"
                                   label="Teléfono"
@@ -1235,7 +1235,7 @@ export default function ConfiguracionPage() {
                                 description="Enlaces para que los clientes puedan seguirte."
                               />
 
-                              <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <TextField
                                   id="business-instagram"
                                   label="Instagram"
@@ -1354,9 +1354,10 @@ export default function ConfiguracionPage() {
                                           key={index}
                                           className="flex items-center gap-2"
                                         >
-                                          <div className="flex-1">
+                                          <div className="min-w-0 flex-1">
                                             <Input
                                               type="time"
+                                              className="min-w-0"
                                               aria-label={`Apertura ${DAYS_TRANSLATION[day.dayOfWeek]}`}
                                               value={period.openTime}
                                               onChange={(e) =>
@@ -1373,9 +1374,10 @@ export default function ConfiguracionPage() {
                                           <span className="text-body-sm text-slate-gray">
                                             a
                                           </span>
-                                          <div className="flex-1">
+                                          <div className="min-w-0 flex-1">
                                             <Input
                                               type="time"
+                                              className="min-w-0"
                                               aria-label={`Cierre ${DAYS_TRANSLATION[day.dayOfWeek]}`}
                                               value={period.closeTime}
                                               onChange={(e) =>
@@ -1399,7 +1401,7 @@ export default function ConfiguracionPage() {
                                             }
                                             disabled={day.periods.length <= 1}
                                             aria-label={`Quitar franja de ${DAYS_TRANSLATION[day.dayOfWeek]}`}
-                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
+                                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
                                           >
                                             <TrashIcon
                                               className="h-4 w-4"
@@ -1445,7 +1447,7 @@ export default function ConfiguracionPage() {
                               className="space-y-5 rounded-xl border border-hairline bg-paper p-5"
                               onSubmit={handleSaveException}
                             >
-                              <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <TextField
                                   id="exception-date"
                                   label="Fecha"
@@ -1490,9 +1492,10 @@ export default function ConfiguracionPage() {
                                       key={index}
                                       className="flex items-center gap-2"
                                     >
-                                      <div className="flex-1">
+                                      <div className="min-w-0 flex-1">
                                         <Input
                                           type="time"
+                                          className="min-w-0"
                                           aria-label="Apertura de la excepción"
                                           value={period.openTime}
                                           onChange={(e) =>
@@ -1508,9 +1511,10 @@ export default function ConfiguracionPage() {
                                       <span className="text-body-sm text-slate-gray">
                                         a
                                       </span>
-                                      <div className="flex-1">
+                                      <div className="min-w-0 flex-1">
                                         <Input
                                           type="time"
+                                          className="min-w-0"
                                           aria-label="Cierre de la excepción"
                                           value={period.closeTime}
                                           onChange={(e) =>
@@ -1532,7 +1536,7 @@ export default function ConfiguracionPage() {
                                           newException.periods.length <= 1
                                         }
                                         aria-label="Quitar franja"
-                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9"
                                       >
                                         <TrashIcon
                                           className="h-4 w-4"
@@ -1598,7 +1602,7 @@ export default function ConfiguracionPage() {
                                           handleDeleteException(exception.date)
                                         }
                                         aria-label={`Eliminar excepción del ${exception.date}`}
-                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
+                                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
                                       >
                                         <TrashIcon
                                           className="h-4 w-4"
@@ -1626,7 +1630,7 @@ export default function ConfiguracionPage() {
                               description="Configurá cómo los clientes interactúan con tu agenda."
                             />
 
-                            <div className="grid gap-5 sm:grid-cols-2">
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                               <SelectField
                                 id="reservationMode"
                                 label="Modo de reserva"

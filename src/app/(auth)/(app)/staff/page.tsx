@@ -505,7 +505,7 @@ export default function StaffPage() {
                               </div>
                             </div>
                             </div>
-                            <div className="flex shrink-0 items-center justify-end gap-1">
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                               {!staff.hasClaimedAccount && (
                                 <Button
                                   type="button"
@@ -513,7 +513,7 @@ export default function StaffPage() {
                                   size="sm"
                                   onClick={() => handleResendInvitation(staff)}
                                   loading={resendingId === staff.id}
-                                  className="mr-1"
+                                  className="w-full sm:w-auto"
                                 >
                                   {resendingId !== staff.id && (
                                     <PaperPlaneTiltIcon
@@ -528,7 +528,7 @@ export default function StaffPage() {
                                 type="button"
                                 onClick={() => openEditModal(staff)}
                                 aria-label={`Editar ${staff.customName}`}
-                                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-9 sm:w-9"
+                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-9 sm:w-9"
                               >
                                 <PencilSimpleIcon
                                   className="h-4 w-4"
@@ -539,7 +539,7 @@ export default function StaffPage() {
                                 type="button"
                                 onClick={() => openDeleteModal(staff)}
                                 aria-label={`Eliminar ${staff.customName}`}
-                                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
+                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-danger-soft hover:text-danger sm:h-9 sm:w-9"
                               >
                                 <TrashIcon className="h-4 w-4" weight="regular" />
                               </button>
@@ -604,16 +604,17 @@ export default function StaffPage() {
 
           {formError && <Alert variant="error">{formError}</Alert>}
 
-          <div className="flex justify-end gap-3 border-t border-hairline pt-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-hairline pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={closeModal}
               disabled={isSaving}
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={isSaving}>
+            <Button type="submit" className="w-full sm:w-auto" loading={isSaving}>
               {editingStaff ? "Guardar cambios" : "Agregar profesional"}
             </Button>
           </div>
@@ -665,16 +666,17 @@ export default function StaffPage() {
 
           {addMeError && <Alert variant="error">{addMeError}</Alert>}
 
-          <div className="flex justify-end gap-3 border-t border-hairline pt-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-hairline pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={closeAddMeModal}
               disabled={isAddingMe}
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={isAddingMe}>
+            <Button type="submit" className="w-full sm:w-auto" loading={isAddingMe}>
               Agregarme al equipo
             </Button>
           </div>

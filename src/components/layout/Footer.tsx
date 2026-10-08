@@ -117,7 +117,7 @@ export default function Footer() {
                         rel={link.external ? "noreferrer" : undefined}
                         aria-label={link.label}
                         title={link.label}
-                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-hairline bg-paper text-ink-navy transition-colors hover:border-signal-blue/40 hover:bg-pebble hover:text-signal-blue"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-hairline bg-paper text-ink-navy transition-colors hover:border-signal-blue/40 hover:bg-pebble hover:text-signal-blue"
                       >
                         <Icon className="h-5 w-5" weight="regular" />
                       </a>

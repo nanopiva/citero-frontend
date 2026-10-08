@@ -59,8 +59,8 @@ export function BookingSummary({
       </div>
 
       <div className="mt-5 flex items-center gap-4 rounded-xl bg-cloud p-4">
-        <div className="flex w-20 shrink-0 flex-col items-center rounded-lg bg-pebble px-3 py-2 text-center">
-          <span className="text-caption font-semibold uppercase tracking-wider text-slate-gray">
+        <div className="flex w-20 shrink-0 flex-col items-center rounded-lg bg-pebble px-2 py-2 text-center sm:px-3">
+          <span className="break-words text-caption font-semibold leading-tight text-slate-gray sm:uppercase sm:tracking-wider">
             {weekday}
           </span>
           <span className="mt-0.5 text-body-sm font-semibold text-signal-blue">

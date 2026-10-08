@@ -315,7 +315,7 @@ export function BookingWizard({
                   disabled={!isCompleted}
                   aria-current={isActive ? "step" : undefined}
                   onClick={() => isCompleted && goToStep(step.id)}
-                  className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-body-sm font-semibold transition-colors ${
+                  className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-body-sm font-semibold transition-colors after:absolute after:-inset-1.5 after:rounded-full after:content-[''] ${
                     isCompleted
                       ? "cursor-pointer bg-signal-blue text-paper"
                       : isActive
@@ -373,7 +373,7 @@ export function BookingWizard({
                     text="Este negocio todavía no cargó servicios para reservar."
                   />
                 ) : (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {services.map((service) => {
                       const isSelected = selectedService === service.id;
                       return (
@@ -445,7 +445,7 @@ export function BookingWizard({
                     }
                   />
                 ) : (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {filteredStaff.length > 1 && (
                       <button
                         type="button"
@@ -535,7 +535,7 @@ export function BookingWizard({
                   Solo se muestran los horarios realmente libres.
                 </p>
 
-                <div className="mt-5 grid gap-6 lg:grid-cols-2 lg:gap-8">
+                <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
                   <div>
                     <div className="flex items-center justify-between">
                       <button
@@ -552,7 +552,7 @@ export function BookingWizard({
                         }
                         disabled={!canGoPrev}
                         aria-label="Mes anterior"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent sm:h-8 sm:w-8"
                       >
                         <CaretLeftIcon className="h-5 w-5" weight="bold" />
                       </button>
@@ -575,7 +575,7 @@ export function BookingWizard({
                           )
                         }
                         aria-label="Mes siguiente"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-gray transition-colors hover:bg-pebble hover:text-ink-navy sm:h-8 sm:w-8"
                       >
                         <CaretRightIcon className="h-5 w-5" weight="bold" />
                       </button>
@@ -612,7 +612,7 @@ export function BookingWizard({
                               month: "long",
                             })}
                             onClick={() => handleSelectDate(item.dateStr)}
-                            className={`flex aspect-square items-center justify-center rounded-lg text-body-sm transition-colors ${
+                            className={`flex h-10 w-full items-center justify-center rounded-lg text-body-sm transition-colors sm:aspect-square sm:h-auto ${
                               item.disabled
                                 ? "cursor-not-allowed text-mist-gray"
                                 : isSelected

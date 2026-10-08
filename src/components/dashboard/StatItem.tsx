@@ -11,7 +11,9 @@ export function StatsStrip({
   return (
     <div
       className={`grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline shadow-sm ${
-        columns === 4 ? "lg:grid-cols-4" : "sm:grid-cols-3"
+        columns === 4
+          ? "lg:grid-cols-4"
+          : "[&>*:last-child]:col-span-2 sm:grid-cols-3 sm:[&>*:last-child]:col-span-1"
       }`}
     >
       {children}
@@ -38,7 +40,7 @@ export function StatItem({
         <span className="text-signal-blue">{icon}</span>
         <p className="text-body-sm font-medium text-slate-gray">{label}</p>
       </div>
-      <p className="mt-3 text-subheading font-bold leading-none text-ink-navy">
+      <p className="mt-3 break-words text-body-lg font-bold leading-none text-ink-navy sm:text-subheading">
         {value}
       </p>
       {typeof progress === "number" && (
