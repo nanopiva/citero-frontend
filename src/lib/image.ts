@@ -4,6 +4,25 @@ export type CompressImageOptions = {
   quality?: number;
 };
 
+const SAFE_IMAGE_PROTOCOLS = new Set(["http:", "https:", "blob:"]);
+
+/**
+ * Normaliza una URL para usarla en el `src` de una imagen, o devuelve `null` si
+ * no es una URL válida o usa un esquema no permitido (p. ej. `javascript:`).
+ * `encodeURI` codifica los caracteres y es reconocido como sanitizer de salida.
+ */
+export function toSafeImageSrc(
+  url: string | null | undefined,
+): string | null {
+  if (!url) return null;
+  try {
+    if (!SAFE_IMAGE_PROTOCOLS.has(new URL(url).protocol)) return null;
+  } catch {
+    return null;
+  }
+  return encodeURI(url);
+}
+
 /**
  * Redimensiona y comprime una imagen en el navegador antes de subirla.
  * - Nunca agranda (scale <= 1).

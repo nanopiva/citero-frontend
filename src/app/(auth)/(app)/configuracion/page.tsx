@@ -834,7 +834,10 @@ export default function ConfiguracionPage() {
     if (!pendingTab) return;
     const target = pendingTab;
     setIsResolvingTab(true);
-    const ok = await tabSaves[activeTab]?.();
+    const save = Object.prototype.hasOwnProperty.call(tabSaves, activeTab)
+      ? tabSaves[activeTab]
+      : undefined;
+    const ok = typeof save === "function" ? await save() : false;
     setIsResolvingTab(false);
     // Si no se pudo guardar, se queda en la pestaña para que el usuario corrija.
     if (ok) setActiveTab(target);
@@ -844,7 +847,10 @@ export default function ConfiguracionPage() {
   const handleDiscardAndLeaveTab = () => {
     if (!pendingTab) return;
     const target = pendingTab;
-    tabDiscards[activeTab]?.();
+    const discard = Object.prototype.hasOwnProperty.call(tabDiscards, activeTab)
+      ? tabDiscards[activeTab]
+      : undefined;
+    if (typeof discard === "function") discard();
     setPendingTab(null);
     setActiveTab(target);
   };
